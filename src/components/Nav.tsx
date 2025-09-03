@@ -7,7 +7,6 @@ export default function Nav() {
       <Link className="hover:text-primary transition-colors" href="/informasi-umum">Informasi Umum</Link>
       <Link className="hover:text-primary transition-colors" href="/organisasi">Organisasi</Link>
       <Link className="hover:text-primary transition-colors" href="/paramita">Paramita</Link>
-      <Link className="hover:text-primary transition-colors" href="/hubungi-kami">Hubungi Kami</Link>
     </nav>
   );
 }
