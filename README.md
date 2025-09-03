@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# How to Contribute to This Repo
 
-## Getting Started
+> If you are an outsider, in other words, not a member to this organization, fork the repository and create issue(s), be it pull request or bug report.
 
-First, run the development server:
+> If you are an insider, follow these steps
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Getting started
+
+### Clone the repo
+```
+git clone https://github.com/kmbui/web-utama.git
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Install Dependencies
+```
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Run Locally
+```
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Branch Management and Project Structure (Must-read for devs)
 
-## Learn More
+There is main and dev branches in this repo, main branch corresponds to prod (https://kmbui.netlify.app/) and dev branch corresponds to dev environment (https://dev--kmbui.netlify.app/).
 
-To learn more about Next.js, take a look at the following resources:
+The way to contribute is make a branch with prefix `feat/`, for example, `feat/organization-page` and so on. Then, if certain that your work is "done", open a pull request to dev branch. Then, the author of this README will review your PR and give comment or approve the PR, if approved, proceed to merge the pull request. We will review together the changes merged into dev branch by taking a look at the deploy result of the dev branch (https://dev--kmbui.netlify.app/) and if there is nothing wrong, I will merge to main, and if there is, fix and PR to dev again.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This project follows this general structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+└── 📁web-utama
+    └── 📁public
+        ├── logo-kmbui.png
+    └── 📁src
+        └── 📁app
+            └── 📁informasi-umum
+            └── 📁organisasi
+            └── 📁paramita
+            ├── globals.css
+            ├── layout.tsx
+            ├── page.tsx
+            ├── robots.ts
+            ├── sitemap.ts
+        └── 📁components
+        └── 📁lib
+    ├── .env
+    ├── .gitignore
+    ├── eslint.config.mjs
+    ├── next-env.d.ts
+    ├── next.config.ts
+    ├── package-lock.json
+    ├── package.json
+    ├── postcss.config.mjs
+    ├── README.md
+    └── tsconfig.json
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The main app lives inside the `src/app/` directory and inside this directory, there are several more directories that each corresponds to pages that exist in the project. Inside each page's directory, you can add more directories like `components/`, `hooks/`, etc. alongside the components and hooks **as long as it only belongs to the corresponding page**. If any components or hooks or anything else are shared between pages, put it in the `components/` or `hooks/` outside of the app directory.
