@@ -11,13 +11,12 @@ export default function Footer() {
             Jl. Lingkar, Pondok Cina, Kecamatan Beji, Kota Depok, Jawa Barat
             16424
           </p>
-          <p className="text-sm md:text-base text-white/90">+62</p>
         </div>
 
         {/* Right - Social Media Icons */}
         <div className="flex gap-4">
           <a
-            href="https://instagram.com"
+            href="https://www.instagram.com/ukm_kmbui/"
             target="_blank"
             rel="noopener noreferrer"
             className="bg-white text-primary w-10 h-10 rounded-full flex items-center justify-center hover:bg-blue-50 transition-colors"
@@ -28,10 +27,10 @@ export default function Footer() {
             </svg>
           </a>
           <a
-            href="https://linkedin.com"
+            href="https://www.linkedin.com/company/ukm-kmbui/"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white text-primary w-10 h-10 rounded-full flex items-center justify-center hover:bg-primary/10 transition-colors"
+            className="bg-white text-primary w-10 h-10 rounded-full flex items-center justify-center hover:bg-blue-50 transition-colors"
             aria-label="LinkedIn"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
