@@ -1,8 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 export default function Nav() {
+  const [showInfoDropdown, setShowInfoDropdown] = useState(false);
+
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between max-w-7xl">
@@ -27,13 +32,44 @@ export default function Nav() {
             Home
           </Link>
           
-          <Link 
-            className="text-gray-900 hover:text-blue-600 transition-colors font-medium flex items-center gap-1" 
-            href="/informasi-umum"
+          <div 
+            className="relative"
+            onMouseEnter={() => setShowInfoDropdown(true)}
+            onMouseLeave={() => setShowInfoDropdown(false)}
           >
-            Informasi Umum
-            <ChevronDown className="w-4 h-4" />
-          </Link>
+            <Link 
+              className="text-gray-900 hover:text-blue-600 transition-colors font-medium flex items-center gap-1" 
+              href="/informasi-umum"
+            >
+              Informasi Umum
+              <ChevronDown className="w-4 h-4" />
+            </Link>
+            
+            {showInfoDropdown && (
+              <div className="absolute top-full left-0 pt-2 w-48 z-50">
+                <div className="bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+                  <Link
+                    href="/informasi-umum#sejarah"
+                    className="block px-4 py-2 text-gray-900 hover:bg-gray-100 transition-colors"
+                  >
+                    Sejarah
+                  </Link>
+                  <Link
+                    href="/informasi-umum#visi-misi"
+                    className="block px-4 py-2 text-gray-900 hover:bg-gray-100 transition-colors"
+                  >
+                    Visi Misi
+                  </Link>
+                  <Link
+                    href="/informasi-umum#makna-logo"
+                    className="block px-4 py-2 text-gray-900 hover:bg-gray-100 transition-colors"
+                  >
+                    Makna Logo
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
           
           <Link 
             className="text-gray-900 hover:text-blue-600 transition-colors font-medium flex items-center gap-1" 
