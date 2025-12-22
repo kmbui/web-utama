@@ -1,25 +1,62 @@
 import Link from "next/link";
 import Image from "next/image";
+import { ChevronDown } from "lucide-react";
 
 export default function Nav() {
   return (
-    <nav className="p-4 border-b border-foreground/10 bg-background text-foreground">
-      <div className="container flex items-center gap-6">
+    <nav className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between max-w-7xl">
+        {/* Logo Section */}
         <Link href="/" className="flex items-center gap-3">
           <Image
             src="/logo-kmbui.png"
             alt="Logo KMBUI"
-            width={40}
-            height={40}
+            width={48}
+            height={48}
             priority
+            className="object-contain"
           />
-          <span className="font-semibold">KMBUI</span>
         </Link>
-        <div className="flex items-center gap-6 ml-auto">
-          <Link className="hover:text-primary transition-colors" href="/">Home</Link>
-          <Link className="hover:text-primary transition-colors" href="/informasi-umum">Informasi Umum</Link>
-          <Link className="hover:text-primary transition-colors" href="/organisasi">Organisasi</Link>
-          <Link className="hover:text-primary transition-colors" href="/paramita">Paramita</Link>
+
+        {/* Navigation Links */}
+        <div className="flex items-center gap-8">
+          <Link 
+            className="text-gray-900 hover:text-blue-600 transition-colors font-medium" 
+            href="/"
+          >
+            Home
+          </Link>
+          
+          <Link 
+            className="text-gray-900 hover:text-blue-600 transition-colors font-medium flex items-center gap-1" 
+            href="/informasi-umum"
+          >
+            Informasi Umum
+            <ChevronDown className="w-4 h-4" />
+          </Link>
+          
+          <Link 
+            className="text-gray-900 hover:text-blue-600 transition-colors font-medium flex items-center gap-1" 
+            href="/organisasi"
+          >
+            Organisasi
+            <ChevronDown className="w-4 h-4" />
+          </Link>
+          
+          <Link 
+            className="text-gray-900 hover:text-blue-600 transition-colors font-medium flex items-center gap-1" 
+            href="/paramita"
+          >
+            Paramita
+            <ChevronDown className="w-4 h-4" />
+          </Link>
+          
+          <Link 
+            className="text-gray-900 hover:text-blue-600 transition-colors font-medium" 
+            href="/hubungi-kami"
+          >
+            Hubungi Kami
+          </Link>
         </div>
       </div>
     </nav>

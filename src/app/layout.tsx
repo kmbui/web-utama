@@ -79,7 +79,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body
-  className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased bg-primary`}
+  className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased bg-primary m-0 p-0`}
       >
   {/* Organization JSON-LD for richer SEO */}
   <script
