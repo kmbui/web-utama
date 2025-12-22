@@ -1,0 +1,24 @@
+/* Remove the nested border boxes from PrimeReact OrganizationChart */
+.p-organizationchart-table {
+  border: none !important;
+}
+
+.p-organizationchart .p-organizationchart-node-content {
+  border: none !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.p-organizationchart .p-organizationchart-line-down {
+  background-color: #9ca3af;
+}
+
+.p-organizationchart .p-organizationchart-line-left,
+.p-organizationchart .p-organizationchart-line-right {
+  border-color: #9ca3af;
+}
+
+.p-organizationchart .p-organizationchart-line-top {
+  border-color: #9ca3af;
+}

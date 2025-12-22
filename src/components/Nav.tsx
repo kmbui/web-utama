@@ -7,6 +7,7 @@ import { useState } from "react";
 
 export default function Nav() {
   const [showInfoDropdown, setShowInfoDropdown] = useState(false);
+  const [showOrgDropdown, setShowOrgDropdown] = useState(false);
 
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">
@@ -71,13 +72,44 @@ export default function Nav() {
             )}
           </div>
           
-          <Link 
-            className="text-gray-900 hover:text-blue-600 transition-colors font-medium flex items-center gap-1" 
-            href="/organisasi"
+          <div 
+            className="relative"
+            onMouseEnter={() => setShowOrgDropdown(true)}
+            onMouseLeave={() => setShowOrgDropdown(false)}
           >
-            Organisasi
-            <ChevronDown className="w-4 h-4" />
-          </Link>
+            <Link 
+              className="text-gray-900 hover:text-blue-600 transition-colors font-medium flex items-center gap-1" 
+              href="/organisasi"
+            >
+              Organisasi
+              <ChevronDown className="w-4 h-4" />
+            </Link>
+            
+            {showOrgDropdown && (
+              <div className="absolute top-full left-0 pt-2 w-48 z-50">
+                <div className="bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+                  <Link
+                    href="/organisasi"
+                    className="block px-4 py-2 text-gray-900 hover:bg-gray-100 transition-colors"
+                  >
+                    Struktur Organisasi
+                  </Link>
+                  <Link
+                    href="/organisasi#departments-section"
+                    className="block px-4 py-2 text-gray-900 hover:bg-gray-100 transition-colors"
+                  >
+                    Departemen
+                  </Link>
+                  <Link
+                    href="/organisasi#kepanitiaan-section"
+                    className="block px-4 py-2 text-gray-900 hover:bg-gray-100 transition-colors"
+                  >
+                    Kepanitiaan
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
           
           <Link 
             className="text-gray-900 hover:text-blue-600 transition-colors font-medium flex items-center gap-1" 
