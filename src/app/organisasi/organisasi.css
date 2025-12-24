@@ -1,6 +1,13 @@
 /* Remove the nested border boxes from PrimeReact OrganizationChart */
 .p-organizationchart-table {
   border: none !important;
+  margin: 0 auto;
+  /* Let PrimeReact's table layout compute cell widths correctly.
+     We still allow the chart to be wider than the viewport via the outer overflow container. */
+  width: auto !important;
+  min-width: max-content;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
 }
 
 .p-organizationchart .p-organizationchart-node-content {
@@ -12,6 +19,7 @@
 
 .p-organizationchart .p-organizationchart-line-down {
   background-color: #9ca3af;
+  margin: 0 auto;
 }
 
 .p-organizationchart .p-organizationchart-line-left,
@@ -21,4 +29,26 @@
 
 .p-organizationchart .p-organizationchart-line-top {
   border-color: #9ca3af;
+}
+
+/* Keep Departemen cards consistent size regardless of content */
+.dept-card {
+  height: 420px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dept-card__body {
+  flex: 1;
+  min-height: 0;
+}
+
+.dept-card__desc {
+  overflow: auto;
+}
+
+@media (max-width: 768px) {
+  .dept-card {
+    height: 460px;
+  }
 }

@@ -10,7 +10,7 @@ export default function Nav() {
   const [showOrgDropdown, setShowOrgDropdown] = useState(false);
 
   return (
-    <nav className="bg-white border-b border-gray-200 shadow-sm">
+    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between max-w-7xl">
         {/* Logo Section */}
         <Link href="/" className="flex items-center gap-3">
@@ -27,7 +27,7 @@ export default function Nav() {
         {/* Navigation Links */}
         <div className="flex items-center gap-8">
           <Link 
-            className="text-gray-900 hover:text-blue-600 transition-colors font-medium" 
+            className="text-neutral-900 hover:text-neutral-900 transition-colors font-medium" 
             href="/"
           >
             Home
@@ -39,7 +39,7 @@ export default function Nav() {
             onMouseLeave={() => setShowInfoDropdown(false)}
           >
             <Link 
-              className="text-gray-900 hover:text-blue-600 transition-colors font-medium flex items-center gap-1" 
+              className="text-neutral-900 hover:text-neutral-900 transition-colors font-medium flex items-center gap-1" 
               href="/informasi-umum"
             >
               Informasi Umum
@@ -51,19 +51,19 @@ export default function Nav() {
                 <div className="bg-white border border-gray-200 rounded-lg shadow-lg py-2">
                   <Link
                     href="/informasi-umum#sejarah"
-                    className="block px-4 py-2 text-gray-900 hover:bg-gray-100 transition-colors"
+                    className="block px-4 py-2 text-neutral-900 hover:bg-gray-100 transition-colors"
                   >
                     Sejarah
                   </Link>
                   <Link
                     href="/informasi-umum#visi-misi"
-                    className="block px-4 py-2 text-gray-900 hover:bg-gray-100 transition-colors"
+                    className="block px-4 py-2 text-neutral-900 hover:bg-gray-100 transition-colors"
                   >
                     Visi Misi
                   </Link>
                   <Link
                     href="/informasi-umum#makna-logo"
-                    className="block px-4 py-2 text-gray-900 hover:bg-gray-100 transition-colors"
+                    className="block px-4 py-2 text-neutral-900 hover:bg-gray-100 transition-colors"
                   >
                     Makna Logo
                   </Link>
@@ -78,7 +78,7 @@ export default function Nav() {
             onMouseLeave={() => setShowOrgDropdown(false)}
           >
             <Link 
-              className="text-gray-900 hover:text-blue-600 transition-colors font-medium flex items-center gap-1" 
+              className="text-neutral-900 hover:text-neutral-900 transition-colors font-medium flex items-center gap-1" 
               href="/organisasi"
             >
               Organisasi
@@ -90,19 +90,19 @@ export default function Nav() {
                 <div className="bg-white border border-gray-200 rounded-lg shadow-lg py-2">
                   <Link
                     href="/organisasi"
-                    className="block px-4 py-2 text-gray-900 hover:bg-gray-100 transition-colors"
+                    className="block px-4 py-2 text-neutral-900 hover:bg-gray-100 transition-colors"
                   >
                     Struktur Organisasi
                   </Link>
                   <Link
                     href="/organisasi#departments-section"
-                    className="block px-4 py-2 text-gray-900 hover:bg-gray-100 transition-colors"
+                    className="block px-4 py-2 text-neutral-900 hover:bg-gray-100 transition-colors"
                   >
                     Departemen
                   </Link>
                   <Link
                     href="/organisasi#kepanitiaan-section"
-                    className="block px-4 py-2 text-gray-900 hover:bg-gray-100 transition-colors"
+                    className="block px-4 py-2 text-neutral-900 hover:bg-gray-100 transition-colors"
                   >
                     Kepanitiaan
                   </Link>
@@ -112,7 +112,7 @@ export default function Nav() {
           </div>
           
           <Link 
-            className="text-gray-900 hover:text-blue-600 transition-colors font-medium flex items-center gap-1" 
+            className="text-neutral-900 hover:text-neutral-900 transition-colors font-medium flex items-center gap-1" 
             href="/paramita"
           >
             Paramita
@@ -120,7 +120,7 @@ export default function Nav() {
           </Link>
           
           <Link 
-            className="text-gray-900 hover:text-blue-600 transition-colors font-medium" 
+            className="text-neutral-900 hover:text-neutral-900 transition-colors font-medium" 
             href="/hubungi-kami"
           >
             Hubungi Kami

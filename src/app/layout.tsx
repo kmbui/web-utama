@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
+import "primereact/resources/primereact.css";
+import "primereact/resources/themes/lara-light-blue/theme.css";
+import "primeicons/primeicons.css";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";

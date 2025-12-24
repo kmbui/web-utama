@@ -1,5 +1,26 @@
+"use client";
+
 import Image from "next/image";
-import Footer from "@/components/Footer";
+import { useEffect, useState } from "react";
+
+function CountUpAnimation({ end, duration, suffix = "" }: { end: number; duration: number; suffix?: string }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTime: number | null = null;
+    const animate = (currentTime: number) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      setCount(Math.floor(progress * end));
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    requestAnimationFrame(animate);
+  }, [end, duration]);
+
+  return <>{count.toLocaleString()}{suffix}</>;
+}
 
 export default function Home() {
   return (
@@ -17,139 +38,71 @@ export default function Home() {
           />
         </div>
 
-        {/* Wave Overlay - Creates the white curved section */}
-        <div className="absolute inset-0 w-full h-full pointer-events-none">
-          <Image
-            src="/wave-hero.svg"
-            alt=""
-            fill
-            className="object-cover"
-            style={{ objectPosition: 'center' }}
-            priority
-          />
-        </div>
+        {/* Gradient Overlay - Darker on the right side */}
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-l from-black/70 via-black/40 to-transparent pointer-events-none"></div>
 
-        {/* Content - Positioned in the white area of the wave */}
+        {/* Content - Positioned on the right side */}
         <div className="relative h-full flex items-center justify-end pr-6 md:pr-10 lg:pr-16 xl:pr-20">
           <div className="max-w-md lg:max-w-lg text-right space-y-4 md:space-y-6">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+            <h2 className="text-white leading-tight drop-shadow-lg">
               Keluarga Mahasiswa Buddhis
-            </h1>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary">
+            </h2>
+            <h2 className="text-primary-100 drop-shadow-lg">
               Universitas Indonesia
             </h2>
-            <p className="text-base md:text-lg lg:text-xl text-gray-800 leading-relaxed">
-              Keluarga Mahasiswa Buddhis Universitas Indonesia (KMBUI) adalah suatu organisasi keagamaan Buddha
+            <p className="text-base md:text-lg lg:text-xl text-white/95 leading-relaxed drop-shadow-md">
+              Keluarga Mahasiswa Buddhis Universitas Indonesia (KMBUI) merupakan sebuah Unit Kegiatan Mahasiswa (UKM) di tingkat universitas yang berkedudukan di Universitas Indonesia dan bergerak pada bidang kerohanian Buddha serta kegiatan sosial kemasyarakatan.
             </p>
           </div>
         </div>
       </section>
 
       {/* About Us Section */}
-      <section className="relative -mt-11 bg-gray-50 py-16 md:py-20 lg:py-24 px-6 md:px-12 lg:px-20">
+      <section className="relative -mt-11 bg-primary-100 py-16 md:py-20 lg:py-24 px-6 md:px-12 lg:px-20">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
           {/* Left - About Us Text */}
           <div className="space-y-6">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
+            <h2 className="sh1 text-primary-700">
               About Us
             </h2>
-            <p className="text-base md:text-lg text-gray-700 leading-relaxed">
-              Keluarga Mahasiswa Buddhis Universitas Indonesia (KMBUI) adalah suatu organisasi keagamaan yang telah berdiri sejak tahun ....
+            <p className="b2 text-neutral-900">
+              Keluarga Mahasiswa Buddhis Universitas Indonesia (KMBUI) merupakan sebuah Unit Kegiatan Mahasiswa (UKM) di tingkat universitas yang berkedudukan di Universitas Indonesia dan bergerak pada bidang kerohanian Buddha serta kegiatan sosial kemasyarakatan.
             </p>
           </div>
 
           {/* Right - Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Berdiri Sejak Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">
+            <div className="bg-white rounded-2xl shadow-md p-8 text-center">
+              <h3 className="sh3 text-neutral-900 mb-3">
                 Berdiri Sejak
               </h3>
-              <p className="text-4xl md:text-5xl font-bold text-primary">
+              <p className="h2 text-primary-700">
                 1988
               </p>
             </div>
 
             {/* Anggota Aktif Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">
+            <div className="bg-white rounded-2xl shadow-md p-8 text-center">
+              <h3 className="sh3 text-neutral-900 mb-3">
                 Anggota Aktif
               </h3>
-              <p className="text-4xl md:text-5xl font-bold text-primary">
-                400
+              <p className="h2 text-primary-700">
+                <CountUpAnimation end={400} duration={2000} />
               </p>
             </div>
 
             {/* Alumni Card - Spans full width on mobile */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 text-center sm:col-span-2">
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">
+            <div className="bg-white rounded-2xl shadow-md p-8 text-center sm:col-span-2">
+              <h3 className="sh3 text-neutral-900 mb-3">
                 Alumni
               </h3>
-              <p className="text-4xl md:text-5xl font-bold text-primary">
-                30000+
+              <p className="h2 text-primary-700">
+                <CountUpAnimation end={30000} duration={2500} suffix="+" />
               </p>
-              <p className="text-sm md:text-base text-gray-600 mt-2">
+              <p className="sh3 text-neutral-900 mt-2">
                 Sejak 1988
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Proker Rutin Section */}
-      <section className="relative py-16 md:py-20 lg:py-24 px-6 md:px-12 lg:px-20" style={{ backgroundColor: '#F4F4FB' }}>
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 text-center mb-12">
-            Proker Rutin
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Card 1 - Puja Rutin */}
-            <div className="relative rounded-3xl overflow-hidden h-80 group">
-              <div className="absolute inset-0 bg-gray-800">
-                {/* Placeholder for background image */}
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-6">
-                <div className="w-20 h-20 bg-primary/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4">
-                  <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M13.5 2c-5.629 0-10.212 4.436-10.475 10h-3.025l4.537 5.917 4.463-5.917h-2.975c.26-3.902 3.508-7 7.475-7 4.136 0 7.5 3.364 7.5 7.5s-3.364 7.5-7.5 7.5c-2.381 0-4.502-1.119-5.876-2.854l-1.847 2.449c1.919 2.088 4.664 3.405 7.723 3.405 5.798 0 10.5-4.702 10.5-10.5s-4.702-10.5-10.5-10.5z"/>
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold">Puja Rutin</h3>
-              </div>
-            </div>
-
-            {/* Card 2 - Waisak */}
-            <div className="relative rounded-3xl overflow-hidden h-80 group">
-              <div className="absolute inset-0 bg-gray-800">
-                {/* Placeholder for background image */}
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-6">
-                <div className="w-20 h-20 bg-primary/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4">
-                  <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M13.5 2c-5.629 0-10.212 4.436-10.475 10h-3.025l4.537 5.917 4.463-5.917h-2.975c.26-3.902 3.508-7 7.475-7 4.136 0 7.5 3.364 7.5 7.5s-3.364 7.5-7.5 7.5c-2.381 0-4.502-1.119-5.876-2.854l-1.847 2.449c1.919 2.088 4.664 3.405 7.723 3.405 5.798 0 10.5-4.702 10.5-10.5s-4.702-10.5-10.5-10.5z"/>
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold">Waisak</h3>
-              </div>
-            </div>
-
-            {/* Card 3 - PPD */}
-            <div className="relative rounded-3xl overflow-hidden h-80 group">
-              <div className="absolute inset-0 bg-gray-800">
-                {/* Placeholder for background image */}
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-6">
-                <div className="w-20 h-20 bg-primary/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4">
-                  <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M13.5 2c-5.629 0-10.212 4.436-10.475 10h-3.025l4.537 5.917 4.463-5.917h-2.975c.26-3.902 3.508-7 7.475-7 4.136 0 7.5 3.364 7.5 7.5s-3.364 7.5-7.5 7.5c-2.381 0-4.502-1.119-5.876-2.854l-1.847 2.449c1.919 2.088 4.664 3.405 7.723 3.405 5.798 0 10.5-4.702 10.5-10.5s-4.702-10.5-10.5-10.5z"/>
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold">PPD</h3>
-              </div>
             </div>
           </div>
         </div>
@@ -158,7 +111,7 @@ export default function Home() {
       {/* Rilis Terbaru Section */}
       <section className="relative bg-white py-16 md:py-20 lg:py-24 px-6 md:px-12 lg:px-20">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="sh1 text-primary-700 mb-12">
             Rilis Terbaru
           </h2>
 
@@ -166,24 +119,89 @@ export default function Home() {
             {/* Carousel Container */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Card 1 */}
-              <div className="bg-gray-200 rounded-2xl aspect-square"></div>
+              <div className="bg-gray-50 rounded-2xl p-4 border border-neutral-100">
+                <div className="bg-gray-200 rounded-xl aspect-square mb-4"></div>
+                <h3 className="sh4 text-neutral-900">Viriya</h3>
+                <p className="b4 text-neutral-600">Paramita 59</p>
+              </div>
               
               {/* Card 2 */}
-              <div className="bg-gray-200 rounded-2xl aspect-square"></div>
+              <div className="bg-gray-50 rounded-2xl p-4 border border-neutral-100">
+                <div className="bg-gray-200 rounded-xl aspect-square mb-4"></div>
+                <h3 className="sh4 text-neutral-900">Viriya</h3>
+                <p className="b4 text-neutral-600">Paramita 59</p>
+              </div>
               
               {/* Card 3 */}
-              <div className="bg-gray-200 rounded-2xl aspect-square"></div>
+              <div className="bg-gray-50 rounded-2xl p-4 border border-neutral-100">
+                <div className="bg-gray-200 rounded-xl aspect-square mb-4"></div>
+                <h3 className="sh4 text-neutral-900">Viriya</h3>
+                <p className="b4 text-neutral-600">Paramita 59</p>
+              </div>
               
               {/* Card 4 */}
-              <div className="bg-gray-200 rounded-2xl aspect-square"></div>
+              <div className="bg-gray-50 rounded-2xl p-4 border border-neutral-100">
+                <div className="bg-gray-200 rounded-xl aspect-square mb-4"></div>
+                <h3 className="sh4 text-neutral-900">Viriya</h3>
+                <p className="b4 text-neutral-600">Paramita 59</p>
+              </div>
             </div>
 
             {/* Navigation Button */}
             <button
-              className="absolute -right-4 top-1/2 -translate-y-1/2 bg-primary text-white w-14 h-14 rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors shadow-lg"
+              className="absolute -right-4 top-1/2 -translate-y-1/2 bg-primary-700 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-primary-500 transition-colors shadow-lg"
               aria-label="Next"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Program Kerja Section */}
+      <section className="relative py-16 md:py-20 lg:py-24 px-6 md:px-12 lg:px-20 bg-neutral-50">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="sh1 text-primary-700 mb-12">
+            Program Kerja
+          </h2>
+
+          <div className="relative">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Card 1 - Bakti Sosial KMBUI (Baksos) */}
+              <div className="relative rounded-3xl overflow-hidden h-80 group">
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-400/50 to-gray-700">
+                  {/* Placeholder for background image */}
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <div className="w-20 h-20 bg-primary-700 rounded-full mx-auto mb-4"></div>
+                    <h3 className="sh3 font-semibold">Bakti Sosial KMBUI (Baksos)</h3>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2 - PPMB */}
+              <div className="relative rounded-3xl overflow-hidden h-80 group">
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-400/50 to-gray-700">
+                  {/* Placeholder for background image */}
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <div className="w-20 h-20 bg-primary-700 rounded-full mx-auto mb-4"></div>
+                    <h3 className="sh3 font-semibold">PPMB (Penerimaan dan Pembekalan Mahasiswa Baru)</h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation Button */}
+            <button
+              className="absolute -right-4 top-1/2 -translate-y-1/2 bg-primary-700 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-primary-500 transition-colors shadow-lg"
+              aria-label="Next"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>

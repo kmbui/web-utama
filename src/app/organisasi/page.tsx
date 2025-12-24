@@ -1,16 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { OrganizationChart } from "primereact/organizationchart";
 import type { TreeNode } from "primereact/treenode";
-import "primereact/resources/primereact.css";
-import "primereact/resources/themes/lara-light-blue/theme.css";
-import "primeicons/primeicons.css";
 import "./organisasi.css";
 
 export default function OrganisasiPage() {
   const [selectedDept, setSelectedDept] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState(0);
+  const orgChartScrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = orgChartScrollRef.current;
+    if (!el) return;
+
+    const center = () => {
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (maxScroll <= 0) return;
+      el.scrollLeft = Math.round(maxScroll / 2);
+    };
+
+    center();
+    window.addEventListener("resize", center);
+    return () => window.removeEventListener("resize", center);
+  }, []);
+
+  const getDeptCardTitle = (name: string) => {
+    const match = name.match(/\(([^)]+)\)/);
+    if (match?.[1]) return match[1];
+    return name;
+  };
+
+  const getPairIndices = (total: number, start: number) => {
+    if (total <= 0) return [0, 0] as const;
+    if (total === 1) return [0, 0] as const;
+    const first = ((start % total) + total) % total;
+    const second = (first + 1) % total;
+    return [first, second] as const;
+  };
 
   const departments = [
     {
@@ -167,144 +195,156 @@ export default function OrganisasiPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-7xl mx-auto px-6 space-y-16">
-          {/* Organization Chart Section */}
-          <section>
-            <h1 className="text-4xl font-bold text-gray-900 mb-12 text-center">
-              Struktur Organisasi
-            </h1>
-
-            <div className="bg-white rounded-2xl shadow-lg p-8 lg:p-12 overflow-x-auto">
-              <OrganizationChart value={data} nodeTemplate={nodeTemplate} />
+      <main className="min-h-screen">
+        <section className="bg-primary-700 px-6 md:px-12 lg:px-20 pt-16 md:pt-20 lg:pt-24">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="h1 text-white text-center">Organisasi</h1>
+            <div className="mt-10 flex justify-center">
+              <Image
+                src="/foto-org.png"
+                alt="Foto Organisasi KMBUI"
+                width={1600}
+                height={800}
+                priority
+                className="h-auto w-full max-w-6xl object-contain animate-fade-up"
+              />
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Departments Section */}
-          <section id="departments-section" className="scroll-mt-24">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Departemen</h2>
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative">
-              {/* Previous Button */}
-              <button
-                onClick={() => setSelectedDept((prev) => (prev === 0 ? departments.length - 1 : prev - 1))}
-                className="absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white p-2 rounded-full shadow-lg transition-all"
-                aria-label="Previous department"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              
-              {/* Next Button */}
-              <button
-                onClick={() => setSelectedDept((prev) => (prev === departments.length - 1 ? 0 : prev + 1))}
-                className="absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white p-2 rounded-full shadow-lg transition-all"
-                aria-label="Next department"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+        <div className="bg-neutral-50 py-12">
+          <div className="max-w-7xl mx-auto px-6">
+            {/* Organization Chart Section */}
+            <section>
+              <h2 className="sh1 text-gray-900 mb-12 text-center">Struktur Organisasi</h2>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 lg:h-[600px]">
-                {/* Left - Image Placeholder */}
-                <div className="relative bg-blue-300 h-64 lg:h-auto flex items-center justify-center order-2 lg:order-1">
-                  <span className="text-4xl font-bold text-white">
-                    {departments[selectedDept].name}
-                  </span>
+              <div
+                ref={orgChartScrollRef}
+                className="bg-white rounded-2xl shadow-lg p-8 lg:p-12 overflow-x-auto"
+              >
+                <OrganizationChart value={data} nodeTemplate={nodeTemplate} />
+              </div>
+            </section>
+          </div>
+
+          {/* Departemen Section (full-width without vw breakout to avoid horizontal overflow) */}
+          <section
+            id="departments-section"
+            className="scroll-mt-24 bg-neutral-100 py-10 md:py-12 mt-16 overflow-x-hidden"
+          >
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="relative">
+                <div className="mb-8">
+                  <h3 className="sh2 text-primary-700">Meet Our Team</h3>
+                  <h2 className="sh1 text-primary-700">Departemen KMBUI</h2>
                 </div>
 
-                {/* Right - Content */}
-                <div className="p-8 lg:p-12 lg:px-16 flex flex-col justify-between overflow-y-auto order-1 lg:order-2 lg:h-[600px]">
-                  <div className="flex-1 overflow-y-auto">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                      {departments[selectedDept].name}
-                    </h3>
-                    <p className="text-gray-700 leading-relaxed text-justify">
-                      {departments[selectedDept].description}
-                    </p>
+                <div className="relative">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {(() => {
+                      const [a, b] = getPairIndices(departments.length, selectedDept);
+                      const cards = [departments[a], departments[b]];
+                      return cards.map((dept, index) => (
+                        <article key={dept.id} className="dept-card rounded-2xl bg-white shadow-lg overflow-hidden">
+                          <div className="relative h-32">
+                            <div className="absolute inset-0 bg-neutral-100" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/30 to-primary-700/60" />
+                            <div className="absolute inset-x-0 bottom-0 h-[2px] bg-primary-700/70" />
+                          </div>
+
+                          <div
+                            className={`dept-card__body relative px-6 pb-6 pt-8 ${index === 0 ? "pl-8" : ""} ${index === 1 ? "pr-8" : ""}`}
+                          >
+                            <div className="absolute -top-6 left-6 h-12 w-12 rounded-full bg-primary-700 ring-4 ring-white" />
+                            <h3 className="text-lg font-semibold text-gray-900">{getDeptCardTitle(dept.name)}</h3>
+                            <p className="dept-card__desc mt-2 text-sm text-gray-700 leading-relaxed text-justify">
+                              {dept.description}
+                            </p>
+                          </div>
+                        </article>
+                      ));
+                    })()}
                   </div>
-                  
-                  {/* Dots Navigation */}
-                  <div className="flex gap-2 mt-6 flex-wrap">
-                    {departments.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedDept(index)}
-                        className={`w-3 h-3 rounded-full transition-colors ${
-                          index === selectedDept ? "bg-black" : "bg-gray-300"
-                        }`}
-                        aria-label={`Go to ${departments[index].name}`}
-                      />
-                    ))}
-                  </div>
+
+                  <button
+                    onClick={() => setSelectedDept((prev) => (prev === 0 ? departments.length - 1 : prev - 1))}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
+                    aria-label="Previous department"
+                  >
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedDept((prev) => (prev === departments.length - 1 ? 0 : prev + 1))}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
+                    aria-label="Next department"
+                  >
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Kepanitiaan Section */}
-          <section id="kepanitiaan-section" className="scroll-mt-24">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Kepanitiaan</h2>
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative">
-              {/* Previous Button */}
-              <button
-                onClick={() => setSelectedEvent((prev) => (prev === 0 ? events.length - 1 : prev - 1))}
-                className="absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white p-2 rounded-full shadow-lg transition-all"
-                aria-label="Previous event"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              
-              {/* Next Button */}
-              <button
-                onClick={() => setSelectedEvent((prev) => (prev === events.length - 1 ? 0 : prev + 1))}
-                className="absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white p-2 rounded-full shadow-lg transition-all"
-                aria-label="Next event"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 lg:h-[600px]">
-                {/* Left - Image Placeholder */}
-                <div className="relative bg-purple-300 h-64 lg:h-auto flex items-center justify-center order-2 lg:order-1">
-                  <span className="text-4xl font-bold text-white">
-                    {events[selectedEvent].name}
-                  </span>
+          <div className="max-w-7xl mx-auto px-6 mt-16 overflow-x-hidden">
+            {/* Program Kerja Section */}
+            <section id="kepanitiaan-section" className="scroll-mt-24">
+              <div className="relative">
+                <div className="mb-8">
+                  <h2 className="sh1 text-primary-700">Program Kerja</h2>
                 </div>
 
-                {/* Right - Content */}
-                <div className="p-8 lg:p-12 lg:px-16 flex flex-col justify-between overflow-y-auto order-1 lg:order-2 lg:h-[600px]">
-                  <div className="flex-1 overflow-y-auto">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                      {events[selectedEvent].name}
-                    </h3>
-                    <p className="text-gray-700 leading-relaxed text-justify">
-                      {events[selectedEvent].description}
-                    </p>
+                <div className="relative">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {(() => {
+                      const [a, b] = getPairIndices(events.length, selectedEvent);
+                      const cards = [events[a], events[b]];
+                      return cards.map((event) => (
+                        <article key={event.id} className="rounded-2xl bg-white shadow-lg overflow-hidden">
+                          <div className="relative h-56 md:h-64">
+                            <div className="absolute inset-0 bg-neutral-100" />
+                            <div className="absolute inset-0 bg-black/35" />
+                            <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                            <div className="absolute top-8 left-1/2 -translate-x-1/2 h-16 w-16 rounded-full bg-primary-700" />
+
+                            <div className="absolute inset-x-0 bottom-5 px-6">
+                              <p className="text-center text-white font-semibold leading-snug">
+                                {event.name}
+                              </p>
+                            </div>
+                          </div>
+                        </article>
+                      ));
+                    })()}
                   </div>
-                  
-                  {/* Dots Navigation */}
-                  <div className="flex gap-2 mt-6 flex-wrap">
-                    {events.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedEvent(index)}
-                        className={`w-3 h-3 rounded-full transition-colors ${
-                          index === selectedEvent ? "bg-black" : "bg-gray-300"
-                        }`}
-                        aria-label={`Go to ${events[index].name}`}
-                      />
-                    ))}
-                  </div>
+
+                  <button
+                    onClick={() => setSelectedEvent((prev) => (prev === 0 ? events.length - 1 : prev - 1))}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
+                    aria-label="Previous program kerja"
+                  >
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedEvent((prev) => (prev === events.length - 1 ? 0 : prev + 1))}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
+                    aria-label="Next program kerja"
+                  >
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
         </div>
       </main>
     </>
