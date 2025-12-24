@@ -1,30 +1,230 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Image from "next/image";
-import { OrganizationChart } from "primereact/organizationchart";
-import type { TreeNode } from "primereact/treenode";
+import ReactFlow, {
+  type Edge,
+  type Node,
+  type NodeProps,
+  Position,
+  Handle,
+} from "reactflow";
+import dagre from "dagre";
+import "reactflow/dist/style.css";
 import "./organisasi.css";
+
+type OrgTreeNode = {
+  id: string;
+  label: string;
+  className: string;
+  deptId?: string;
+  children?: OrgTreeNode[];
+};
+
+const ROOT_SIBLING = {
+  id: "ketua-kmb-bem-ikm-fk-ui",
+  label: "Ketua KMB BEM IKM FK UI",
+  className:
+    "bg-[#313aa3] text-white w-[240px] md:w-[300px] h-[110px] md:h-[120px] px-7 rounded-lg font-semibold shadow-md text-xl md:text-2xl text-center leading-tight scale-110 origin-center flex items-center justify-center",
+} as const;
+
+const DEPARTMENTS = [
+  {
+    id: "bph",
+    name: "Badan Pengurus Harian (BPH)",
+    description:
+      "Kepengurusan inti atau Badan Pengurus Harian terdiri dari Koordinator Internal, Bendahara Umum, Ketua Umum, Sekretaris Umum, dan Koordinator Eksternal.",
+  },
+  {
+    id: "kalyanamitta",
+    name: "Kalyanamitta",
+    description:
+      "Departemen Kalyanamitta berperan dalam mengenalkan dan mengembangkan praktik Dhamma yang diajarkan oleh Sang Buddha. Program-programnya dirancang agar menyenangkan, bermanfaat, serta dapat meningkatkan kebijaksanaan anggota KMBUI. Kegiatan yang dilakukan antara lain Puja Rutin dan Pembinaan Pengembangan Dhamma atau PPD.",
+  },
+  {
+    id: "pengsos",
+    name: "Pengembangan Sosial (Pengsos)",
+    description:
+      "Departemen Pengembangan Sosial atau Pengsos menjadi roda penggerak dalam menumbuhkan rasa kemanusiaan, mewujudkan Dhamma dalam kehidupan, dan menumbuhkan cinta kasih kepada sesama. Departemen ini menjadi wadah bagi anggota KMBUI dalam menumbuhkan kepedulian dan melakukan pengabdian kepada masyarakat. Program kerja yang dijalankan adalah UI Berbagi, Socio Care, Care n Give, serta kegiatan paruh kedua berupa pencarian desa pengabdian dan penyusunan laporan pengembangan sosial.",
+  },
+  {
+    id: "creative-events",
+    name: "Creative Events",
+    description:
+      "Departemen Acara Kreatif atau Creative Events merupakan wadah untuk mempererat hubungan dan membangun kebersamaan antar anggota KMBUI melalui kegiatan kreatif dan inovatif. Program kerjanya meliputi Birthday Chronicle, KMBUI Challenge, Gathering, dan KMBUI Fest.",
+  },
+  {
+    id: "rnd",
+    name: "Research and Development (RnD)",
+    description:
+      "Departemen Penelitian dan Pengembangan atau Research and Development memiliki tugas mengembangkan kemampuan sumber daya manusia serta memantau kinerja dan kualitas individu maupun program kerja di dalam KMBUI. Program kerjanya adalah Kelompok Studi Buddhis atau KOSIB, Kaderisasi Anggota Menjadi Pemimpin yang Terampil dan Mandiri atau KAMERY, Kepemimpinan Pengurus Guna Optimalisasi Organisasi atau KPGO, Apresiasi Program dan Proker Outstanding atau APPRO, Program Magang KMBUI, serta Evaluasi dan Dokumentasi Internal atau EDI.",
+  },
+  {
+    id: "kestari",
+    name: "Kesekretariatan (Kestari)",
+    description:
+      "Departemen Kesekretariatan bertugas dalam pengurusan dan pelayanan administrasi untuk seluruh kebutuhan surat-menyurat, pengelolaan dan perawatan inventaris, pengelolaan sekretariat KMBUI, agenda program kerja dari setiap departemen, serta penyusunan dan pemeliharaan database anggota. Program kerja Departemen Kesekretariatan antara lain Sistem Informasi Persuratan, Administrasi, dan Perpustakaan Digital.",
+  },
+  {
+    id: "paramita",
+    name: "PARAMITA",
+    description:
+      "Departemen Publikasi, Dokumentasi, dan Informasi yang dikenal dengan nama Departemen Paramita berfokus pada bidang desain, publikasi, dan informasi. Departemen ini mengelola media sosial KMBUI serta bertanggung jawab atas pembuatan dan penerbitan majalah Paramita. Program kerjanya mencakup Majalah Paramita edisi ke-59, KMBUInfo, KMBUInterlude, dan ParamitaLoka.",
+  },
+  {
+    id: "finance",
+    name: "Finance",
+    description:
+      "Departemen Keuangan atau Finance bertanggung jawab dalam memfasilitasi seluruh program kerja di setiap departemen melalui pengelolaan keuangan yang memadai. Departemen ini melaksanakan berbagai kegiatan penggalangan dana. Program kerjanya antara lain DonTap, penjualan merchandise, pemberian hadiah kejutan, dan Dana KMBUI.",
+  },
+  {
+    id: "humas",
+    name: "Hubungan Masyarakat (Humas)",
+    description:
+      "Departemen Hubungan Masyarakat atau Humas berperan sebagai wajah representatif KMBUI. Tugasnya adalah membangun dan mempertahankan hubungan dengan pihak eksternal, seperti Keluarga Mahasiswa Buddhis dari universitas lain, vihara atau cetiya, serta organisasi Buddhis lainnya. Program yang dijalankan antara lain Volundangan, Anjangsana, dan Studi Banding.",
+  },
+  {
+    id: "halo",
+    name: "HALO",
+    description:
+      "Departemen Hubungan Alumni dan Lintas Organisasi atau HALO berfokus pada pembangunan hubungan antara anggota aktif dengan alumni KMBUI. Selain itu, departemen ini juga menjaga komunikasi dan hubungan dengan organisasi lain yang ada di lingkungan Universitas Indonesia. Programnya mencakup Penerimaan dan Seleksi Anggota Baru, Seminar Inspiratif Wawasan Alumni dan Lintas Organisasi atau SIWALI, serta kegiatan lintas organisasi.",
+  },
+];
+
+const EVENTS = [
+  {
+    id: "baksos",
+    name: "Bakti Sosial KMBUI (Baksos)",
+    description:
+      "Baksos KMBUI adalah kegiatan pengabdian masyarakat dalam mengatasi permasalahan sosial dalam lingkungan masyarakat, khususnya di bidang kesehatan untuk meningkatkan kesadaran dan pengetahuan masyarakat terhadap pentingnya menjaga kesehatan.",
+  },
+  {
+    id: "ppmb",
+    name: "PPMB (Penerimaan dan Pembekalan Mahasiswa Baru)",
+    description:
+      "PPMB merupakan acara yang bertujuan untuk menyambut mahasiswa-mahasiswi baru UI guna memperkenalkan dan menyambut mereka sebagai anggota baru KMBUI dan kepada dunia kampus.",
+  },
+  {
+    id: "kathina",
+    name: "Kathina Puja",
+    description:
+      "Kathina merupakan acara yang bertujuan untuk memberikan kesempatan kepada anggota KMBUI dalam melakukan penghimpunan kebajikan yang besar bersama-sama, mempererat kekeluargaan antaranggota aktif KMBUI dan alumni, serta untuk meningkatkan perkembangan spiritual.",
+  },
+  {
+    id: "makrab",
+    name: "Malam Keakraban (Makrab)",
+    description:
+      "Makrab KMBUI adalah acara yang diselenggarakan oleh kepanitiaan yang tersusun atas mahasiswa baru untuk mempererat silaturahmi antara seluruh elemen KMBUI dan mendekatkan mahasiswa baru sebagai saudara yang harmonis.",
+  },
+];
+
+const ORG_TREE: OrgTreeNode = {
+  id: "ketua-umum",
+  label: "Ketua Umum",
+  className:
+    "bg-[#313aa3] text-white w-[240px] md:w-[300px] h-[110px] md:h-[120px] px-7 rounded-lg font-semibold shadow-md text-xl md:text-2xl text-center leading-tight scale-110 origin-center flex items-center justify-center",
+  children: [
+    {
+      id: "internal",
+      label: "Internal",
+      className:
+        "bg-[#4a52b8] text-white w-[220px] md:w-[270px] px-6 py-5 rounded-lg font-semibold shadow-md text-lg md:text-xl text-center leading-tight scale-110 origin-center",
+      children: [
+        {
+          id: "kalyanamitta",
+          label: "Kalyanamitta",
+          deptId: "kalyanamitta",
+          className:
+            "bg-[#6b73d1] text-white w-[210px] md:w-[260px] px-5 py-5 rounded-lg font-semibold shadow-md text-lg md:text-xl text-center leading-tight hover:bg-[#7a82d9] transition-colors scale-110 origin-center",
+        },
+        {
+          id: "pengsos",
+          label: "Pengsos",
+          deptId: "pengsos",
+          className:
+            "bg-[#6b73d1] text-white w-[210px] md:w-[260px] px-5 py-5 rounded-lg font-semibold shadow-md text-lg md:text-xl text-center leading-tight hover:bg-[#7a82d9] transition-colors scale-110 origin-center",
+        },
+        {
+          id: "creative-events",
+          label: "Creative Events",
+          deptId: "creative-events",
+          className:
+            "bg-[#6b73d1] text-white w-[210px] md:w-[260px] px-5 py-5 rounded-lg font-semibold shadow-md text-lg md:text-xl text-center leading-tight hover:bg-[#7a82d9] transition-colors scale-110 origin-center",
+        },
+        {
+          id: "rnd",
+          label: "Rnd",
+          deptId: "rnd",
+          className:
+            "bg-[#6b73d1] text-white w-[210px] md:w-[260px] px-5 py-5 rounded-lg font-semibold shadow-md text-lg md:text-xl text-center leading-tight hover:bg-[#7a82d9] transition-colors scale-110 origin-center",
+        },
+      ],
+    },
+    {
+      id: "sekretaris-umum",
+      label: "Sekretaris Umum",
+      className:
+        "bg-[#4a52b8] text-white w-[220px] md:w-[270px] px-6 py-5 rounded-lg font-semibold shadow-md text-lg md:text-xl text-center leading-tight scale-110 origin-center",
+      children: [
+        {
+          id: "kestari",
+          label: "Kestari",
+          deptId: "kestari",
+          className:
+            "bg-[#6b73d1] text-white w-[210px] md:w-[260px] px-5 py-5 rounded-lg font-semibold shadow-md text-lg md:text-xl text-center leading-tight hover:bg-[#7a82d9] transition-colors scale-110 origin-center",
+        },
+      ],
+    },
+    {
+      id: "bendahara-umum",
+      label: "Bendahara Umum",
+      className:
+        "bg-[#4a52b8] text-white w-[220px] md:w-[270px] px-6 py-5 rounded-lg font-semibold shadow-md text-lg md:text-xl text-center leading-tight scale-110 origin-center",
+      children: [
+        {
+          id: "paramita",
+          label: "PARAMITA",
+          deptId: "paramita",
+          className:
+            "bg-[#6b73d1] text-white w-[210px] md:w-[260px] px-5 py-5 rounded-lg font-semibold shadow-md text-lg md:text-xl text-center leading-tight hover:bg-[#7a82d9] transition-colors scale-110 origin-center",
+        },
+        {
+          id: "finance",
+          label: "Finance",
+          deptId: "finance",
+          className:
+            "bg-[#6b73d1] text-white w-[210px] md:w-[260px] px-5 py-5 rounded-lg font-semibold shadow-md text-lg md:text-xl text-center leading-tight hover:bg-[#7a82d9] transition-colors scale-110 origin-center",
+        },
+      ],
+    },
+    {
+      id: "eksternal",
+      label: "Eksternal",
+      className:
+        "bg-[#4a52b8] text-white w-[220px] md:w-[270px] px-6 py-5 rounded-lg font-semibold shadow-md text-lg md:text-xl text-center leading-tight scale-110 origin-center",
+      children: [
+        {
+          id: "humas",
+          label: "Humas",
+          deptId: "humas",
+          className:
+            "bg-[#6b73d1] text-white w-[210px] md:w-[260px] px-5 py-5 rounded-lg font-semibold shadow-md text-lg md:text-xl text-center leading-tight hover:bg-[#7a82d9] transition-colors scale-110 origin-center",
+        },
+        {
+          id: "halo",
+          label: "HALO",
+          deptId: "halo",
+          className:
+            "bg-[#6b73d1] text-white w-[210px] md:w-[260px] px-5 py-5 rounded-lg font-semibold shadow-md text-lg md:text-xl text-center leading-tight hover:bg-[#7a82d9] transition-colors scale-110 origin-center",
+        },
+      ],
+    },
+  ],
+};
 
 export default function OrganisasiPage() {
   const [selectedDept, setSelectedDept] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState(0);
-  const orgChartScrollRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const el = orgChartScrollRef.current;
-    if (!el) return;
-
-    const center = () => {
-      const maxScroll = el.scrollWidth - el.clientWidth;
-      if (maxScroll <= 0) return;
-      el.scrollLeft = Math.round(maxScroll / 2);
-    };
-
-    center();
-    window.addEventListener("resize", center);
-    return () => window.removeEventListener("resize", center);
-  }, []);
 
   const getDeptCardTitle = (name: string) => {
     const match = name.match(/\(([^)]+)\)/);
@@ -40,158 +240,153 @@ export default function OrganisasiPage() {
     return [first, second] as const;
   };
 
-  const departments = [
-    {
-      id: "bph",
-      name: "Badan Pengurus Harian (BPH)",
-      description: "Kepengurusan inti atau Badan Pengurus Harian terdiri dari Koordinator Internal, Bendahara Umum, Ketua Umum, Sekretaris Umum, dan Koordinator Eksternal."
-    },
-    {
-      id: "kalyanamitta",
-      name: "Kalyanamitta",
-      description: "Departemen Kalyanamitta berperan dalam mengenalkan dan mengembangkan praktik Dhamma yang diajarkan oleh Sang Buddha. Program-programnya dirancang agar menyenangkan, bermanfaat, serta dapat meningkatkan kebijaksanaan anggota KMBUI. Kegiatan yang dilakukan antara lain Puja Rutin dan Pembinaan Pengembangan Dhamma atau PPD."
-    },
-    {
-      id: "pengsos",
-      name: "Pengembangan Sosial (Pengsos)",
-      description: "Departemen Pengembangan Sosial atau Pengsos menjadi roda penggerak dalam menumbuhkan rasa kemanusiaan, mewujudkan Dhamma dalam kehidupan, dan menumbuhkan cinta kasih kepada sesama. Departemen ini menjadi wadah bagi anggota KMBUI dalam menumbuhkan kepedulian dan melakukan pengabdian kepada masyarakat. Program kerja yang dijalankan adalah UI Berbagi, Socio Care, Care n Give, serta kegiatan paruh kedua berupa pencarian desa pengabdian dan penyusunan laporan pengembangan sosial."
-    },
-    {
-      id: "creative-events",
-      name: "Creative Events",
-      description: "Departemen Acara Kreatif atau Creative Events merupakan wadah untuk mempererat hubungan dan membangun kebersamaan antar anggota KMBUI melalui kegiatan kreatif dan inovatif. Program kerjanya meliputi Birthday Chronicle, KMBUI Challenge, Gathering, dan KMBUI Fest."
-    },
-    {
-      id: "rnd",
-      name: "Research and Development (RnD)",
-      description: "Departemen Penelitian dan Pengembangan atau Research and Development memiliki tugas mengembangkan kemampuan sumber daya manusia serta memantau kinerja dan kualitas individu maupun program kerja di dalam KMBUI. Program kerjanya adalah Kelompok Studi Buddhis atau KOSIB, Kaderisasi Anggota Menjadi Pemimpin yang Terampil dan Mandiri atau KAMERY, Kepemimpinan Pengurus Guna Optimalisasi Organisasi atau KPGO, Apresiasi Program dan Proker Outstanding atau APPRO, Program Magang KMBUI, serta Evaluasi dan Dokumentasi Internal atau EDI."
-    },
-    {
-      id: "kestari",
-      name: "Kesekretariatan (Kestari)",
-      description: "Departemen Kesekretariatan bertugas dalam pengurusan dan pelayanan administrasi untuk seluruh kebutuhan surat-menyurat, pengelolaan dan perawatan inventaris, pengelolaan sekretariat KMBUI, agenda program kerja dari setiap departemen, serta penyusunan dan pemeliharaan database anggota. Program kerja Departemen Kesekretariatan antara lain Sistem Informasi Persuratan, Administrasi, dan Perpustakaan Digital."
-    },
-    {
-      id: "paramita",
-      name: "PARAMITA",
-      description: "Departemen Publikasi, Dokumentasi, dan Informasi yang dikenal dengan nama Departemen Paramita berfokus pada bidang desain, publikasi, dan informasi. Departemen ini mengelola media sosial KMBUI serta bertanggung jawab atas pembuatan dan penerbitan majalah Paramita. Program kerjanya mencakup Majalah Paramita edisi ke-59, KMBUInfo, KMBUInterlude, dan ParamitaLoka."
-    },
-    {
-      id: "finance",
-      name: "Finance",
-      description: "Departemen Keuangan atau Finance bertanggung jawab dalam memfasilitasi seluruh program kerja di setiap departemen melalui pengelolaan keuangan yang memadai. Departemen ini melaksanakan berbagai kegiatan penggalangan dana. Program kerjanya antara lain DonTap, penjualan merchandise, pemberian hadiah kejutan, dan Dana KMBUI."
-    },
-    {
-      id: "humas",
-      name: "Hubungan Masyarakat (Humas)",
-      description: "Departemen Hubungan Masyarakat atau Humas berperan sebagai wajah representatif KMBUI. Tugasnya adalah membangun dan mempertahankan hubungan dengan pihak eksternal, seperti Keluarga Mahasiswa Buddhis dari universitas lain, vihara atau cetiya, serta organisasi Buddhis lainnya. Program yang dijalankan antara lain Volundangan, Anjangsana, dan Studi Banding."
-    },
-    {
-      id: "halo",
-      name: "HALO",
-      description: "Departemen Hubungan Alumni dan Lintas Organisasi atau HALO berfokus pada pembangunan hubungan antara anggota aktif dengan alumni KMBUI. Selain itu, departemen ini juga menjaga komunikasi dan hubungan dengan organisasi lain yang ada di lingkungan Universitas Indonesia. Programnya mencakup Penerimaan dan Seleksi Anggota Baru, Seminar Inspiratif Wawasan Alumni dan Lintas Organisasi atau SIWALI, serta kegiatan lintas organisasi."
-    }
-  ];
-
-  const events = [
-    {
-      id: "baksos",
-      name: "Bakti Sosial KMBUI (Baksos)",
-      description: "Baksos KMBUI adalah kegiatan pengabdian masyarakat dalam mengatasi permasalahan sosial dalam lingkungan masyarakat, khususnya di bidang kesehatan untuk meningkatkan kesadaran dan pengetahuan masyarakat terhadap pentingnya menjaga kesehatan."
-    },
-    {
-      id: "ppmb",
-      name: "PPMB (Penerimaan dan Pembekalan Mahasiswa Baru)",
-      description: "PPMB merupakan acara yang bertujuan untuk menyambut mahasiswa-mahasiswi baru UI guna memperkenalkan dan menyambut mereka sebagai anggota baru KMBUI dan kepada dunia kampus."
-    },
-    {
-      id: "kathina",
-      name: "Kathina Puja",
-      description: "Kathina merupakan acara yang bertujuan untuk memberikan kesempatan kepada anggota KMBUI dalam melakukan penghimpunan kebajikan yang besar bersama-sama, mempererat kekeluargaan antaranggota aktif KMBUI dan alumni, serta untuk meningkatkan perkembangan spiritual."
-    },
-    {
-      id: "makrab",
-      name: "Malam Keakraban (Makrab)",
-      description: "Makrab KMBUI adalah acara yang diselenggarakan oleh kepanitiaan yang tersusun atas mahasiswa baru untuk mempererat silaturahmi antara seluruh elemen KMBUI dan mendekatkan mahasiswa baru sebagai saudara yang harmonis."
-    }
-  ];
-
-  const scrollToDepartment = (deptId: string) => {
-    const index = departments.findIndex(d => d.id === deptId);
-    if (index !== -1) {
-      setSelectedDept(index);
-      const element = document.getElementById('departments-section');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const scrollToDepartment = useCallback(
+    (deptId: string) => {
+      const index = DEPARTMENTS.findIndex((d) => d.id === deptId);
+      if (index !== -1) {
+        setSelectedDept(index);
+        const element = document.getElementById("departments-section");
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       }
-    }
-  };
+    },
+    [setSelectedDept]
+  );
 
-  const nodeTemplate = (node: TreeNode) => {
-    const deptId = node.label?.toString().toLowerCase().replace(/\s+/g, '-').replace(/\(|\)/g, '');
-    const isDepartment = departments.some(d => d.id === deptId || d.name.toLowerCase().includes(node.label?.toString().toLowerCase() || ''));
-    
-    return (
+  const nodeTypes = useMemo(() => {
+    const OrgNode = ({ data }: NodeProps<{ label: string; className: string; onClick?: () => void }>) => (
       <div
-        className={node.className}
-        onClick={() => {
-          if (isDepartment) {
-            scrollToDepartment(deptId || '');
-          }
-        }}
-        style={{ cursor: isDepartment ? 'pointer' : 'default' }}
+        className={data.className}
+        onClick={data.onClick}
+        style={{ cursor: data.onClick ? "pointer" : "default" }}
       >
-        {node.label}
+        {/* Invisible handles are required for edges to render */}
+        <Handle id="t" type="target" position={Position.Top} style={{ opacity: 0, pointerEvents: "none" }} />
+        <Handle id="b" type="source" position={Position.Bottom} style={{ opacity: 0, pointerEvents: "none" }} />
+        <Handle id="l" type="target" position={Position.Left} style={{ opacity: 0, pointerEvents: "none" }} />
+        <Handle id="r" type="source" position={Position.Right} style={{ opacity: 0, pointerEvents: "none" }} />
+        {data.label}
       </div>
     );
-  };
 
-  const data: TreeNode[] = [
-    {
-      label: "Ketua Umum",
-      className: "bg-[#313aa3] text-white px-8 py-4 rounded-lg font-semibold shadow-md",
-      expanded: true,
-      children: [
-        {
-          label: "Internal",
-          className: "bg-[#4a52b8] text-white px-6 py-3 rounded-lg font-semibold shadow-md",
-          expanded: true,
-          children: [
-            { label: "Kalyanamitta", className: "bg-[#6b73d1] text-white px-4 py-3 rounded-lg font-semibold shadow-md text-sm cursor-pointer hover:bg-[#7a82d9] transition-colors" },
-            { label: "Pengsos", className: "bg-[#6b73d1] text-white px-4 py-3 rounded-lg font-semibold shadow-md text-sm cursor-pointer hover:bg-[#7a82d9] transition-colors" },
-            { label: "Creative Events", className: "bg-[#6b73d1] text-white px-4 py-3 rounded-lg font-semibold shadow-md text-sm cursor-pointer hover:bg-[#7a82d9] transition-colors" },
-            { label: "Rnd", className: "bg-[#6b73d1] text-white px-4 py-3 rounded-lg font-semibold shadow-md text-sm cursor-pointer hover:bg-[#7a82d9] transition-colors" },
-          ],
+    return { orgNode: OrgNode };
+  }, []);
+
+  const { nodes: orgNodes, edges: orgEdges } = useMemo(() => {
+    const nodes: Node[] = [];
+    const edges: Edge[] = [];
+    const childrenCountById = new Map<string, number>();
+    const singleChildPairs: Array<{ parentId: string; childId: string }> = [];
+
+    const add = (node: OrgTreeNode, parentId?: string) => {
+      const childCount = node.children?.length ?? 0;
+      childrenCountById.set(node.id, childCount);
+      if (childCount === 1 && node.children?.[0]) {
+        singleChildPairs.push({ parentId: node.id, childId: node.children[0].id });
+      }
+
+      nodes.push({
+        id: node.id,
+        type: "orgNode",
+        position: { x: 0, y: 0 },
+        data: {
+          label: node.label,
+          className: node.className,
+          onClick: node.deptId ? () => scrollToDepartment(node.deptId!) : undefined,
         },
-        {
-          label: "Sekretaris Umum",
-          className: "bg-[#4a52b8] text-white px-6 py-3 rounded-lg font-semibold shadow-md",
-          expanded: true,
-          children: [
-            { label: "Kestari", className: "bg-[#6b73d1] text-white px-4 py-3 rounded-lg font-semibold shadow-md text-sm cursor-pointer hover:bg-[#7a82d9] transition-colors" },
-          ],
+      });
+
+      if (parentId) {
+        edges.push({
+          id: `e-${parentId}-${node.id}`,
+          source: parentId,
+          target: node.id,
+          sourceHandle: "b",
+          targetHandle: "t",
+          type: "smoothstep",
+          style: { stroke: "#6b7280", strokeWidth: 3 },
+        });
+      }
+
+      node.children?.forEach((child) => add(child, node.id));
+    };
+
+    add(ORG_TREE);
+
+    const g = new dagre.graphlib.Graph();
+    g.setDefaultEdgeLabel(() => ({}));
+    // Slightly looser spacing so nodes don't feel cramped.
+    g.setGraph({ rankdir: "TB", nodesep: 64, ranksep: 110 });
+
+    // Keep layout dimensions conservative; the node visuals are slightly scaled.
+    const nodeWidth = 240;
+    const nodeHeight = 108;
+    nodes.forEach((n) => g.setNode(n.id, { width: nodeWidth, height: nodeHeight }));
+    edges.forEach((e) => g.setEdge(e.source, e.target));
+    dagre.layout(g);
+
+    const layoutedNodes = nodes.map((n) => {
+      const pos = g.node(n.id) as { x: number; y: number } | undefined;
+      return {
+        ...n,
+        position: pos ? { x: pos.x - nodeWidth / 2, y: pos.y - nodeHeight / 2 } : n.position,
+      };
+    });
+
+    // For parents with exactly one child, align the child directly under the parent.
+    // This makes the connector a perfectly straight vertical line when we use a straight edge.
+    const byId = new Map(layoutedNodes.map((n) => [n.id, n] as const));
+    for (const { parentId, childId } of singleChildPairs) {
+      const parent = byId.get(parentId);
+      const child = byId.get(childId);
+      if (!parent || !child) continue;
+      child.position = { ...child.position, x: parent.position.x };
+    }
+
+    const finalEdges = edges.map((e) => {
+      const sourceChildren = childrenCountById.get(e.source) ?? 0;
+      if (sourceChildren === 1) {
+        return {
+          ...e,
+          type: "straight",
+        };
+      }
+      return e;
+    });
+
+    // Add a sibling node next to the (visual) root: "Ketua Umum".
+    // This sibling is positioned manually so it doesn't disturb the existing hierarchy layout.
+    const ketuaNode = layoutedNodes.find((n) => n.id === ORG_TREE.id);
+    if (ketuaNode) {
+      const siblingNode: Node = {
+        id: ROOT_SIBLING.id,
+        type: "orgNode",
+        position: {
+          x: ketuaNode.position.x - (nodeWidth + 200),
+          y: ketuaNode.position.y,
         },
-        {
-          label: "Bendahara Umum",
-          className: "bg-[#4a52b8] text-white px-6 py-3 rounded-lg font-semibold shadow-md",
-          expanded: true,
-          children: [
-            { label: "PARAMITA", className: "bg-[#6b73d1] text-white px-4 py-3 rounded-lg font-semibold shadow-md text-sm cursor-pointer hover:bg-[#7a82d9] transition-colors" },
-            { label: "Finance", className: "bg-[#6b73d1] text-white px-4 py-3 rounded-lg font-semibold shadow-md text-sm cursor-pointer hover:bg-[#7a82d9] transition-colors" },
-          ],
+        data: {
+          label: ROOT_SIBLING.label,
+          className: ROOT_SIBLING.className,
         },
-        {
-          label: "Eksternal",
-          className: "bg-[#4a52b8] text-white px-6 py-3 rounded-lg font-semibold shadow-md",
-          expanded: true,
-          children: [
-            { label: "Humas", className: "bg-[#6b73d1] text-white px-4 py-3 rounded-lg font-semibold shadow-md text-sm cursor-pointer hover:bg-[#7a82d9] transition-colors" },
-            { label: "HALO", className: "bg-[#6b73d1] text-white px-4 py-3 rounded-lg font-semibold shadow-md text-sm cursor-pointer hover:bg-[#7a82d9] transition-colors" },
-          ],
-        },
-      ],
-    },
-  ];
+      };
+
+      const siblingEdge: Edge = {
+        id: `e-${ROOT_SIBLING.id}-${ORG_TREE.id}`,
+        source: ROOT_SIBLING.id,
+        target: ORG_TREE.id,
+        sourceHandle: "r",
+        targetHandle: "l",
+        type: "straight",
+        style: { stroke: "#6b7280", strokeWidth: 3, strokeDasharray: "6 6" },
+      };
+
+      return { nodes: [...layoutedNodes, siblingNode], edges: [...finalEdges, siblingEdge] };
+    }
+
+    return { nodes: layoutedNodes, edges: finalEdges };
+  }, [scrollToDepartment]);
 
   return (
     <>
@@ -199,7 +394,7 @@ export default function OrganisasiPage() {
         <section className="bg-primary-700 px-6 md:px-12 lg:px-20 pt-16 md:pt-20 lg:pt-24">
           <div className="max-w-7xl mx-auto">
             <h1 className="h1 text-white text-center">Organisasi</h1>
-            <div className="mt-10 flex justify-center">
+            <div className="mt-5 flex justify-center">
               <Image
                 src="/foto-org.png"
                 alt="Foto Organisasi KMBUI"
@@ -213,19 +408,40 @@ export default function OrganisasiPage() {
         </section>
 
         <div className="bg-neutral-50 py-12">
-          <div className="max-w-7xl mx-auto px-6">
-            {/* Organization Chart Section */}
-            <section>
-              <h2 className="sh1 text-gray-900 mb-12 text-center">Struktur Organisasi</h2>
+          {/* Organization Chart Section */}
+          <section>
+            <div className="max-w-7xl mx-auto px-6">
+              <h2 className="sh1 text-primary-700 mb-12 text-center">Struktur Organisasi</h2>
+            </div>
 
+            <div className="px-6">
               <div
-                ref={orgChartScrollRef}
-                className="bg-white rounded-2xl shadow-lg p-8 lg:p-12 overflow-x-auto"
+                className="bg-white rounded-2xl shadow-lg overflow-x-auto overflow-y-hidden"
               >
-                <OrganizationChart value={data} nodeTemplate={nodeTemplate} />
+                <div className="p-8 lg:p-12">
+                  <div className="h-[640px] w-full">
+                    <ReactFlow
+                      nodes={orgNodes}
+                      edges={orgEdges}
+                      nodeTypes={nodeTypes}
+                      fitView
+                      fitViewOptions={{ padding: 0.08, maxZoom: 1 }}
+                      defaultEdgeOptions={{ type: "smoothstep", style: { stroke: "#6b7280", strokeWidth: 3 } }}
+                      zoomOnScroll={false}
+                      zoomOnPinch={false}
+                      zoomOnDoubleClick={false}
+                      panOnScroll={false}
+                      preventScrolling={false}
+                      nodesDraggable={false}
+                      nodesConnectable={false}
+                      elementsSelectable={false}
+                      proOptions={{ hideAttribution: true }}
+                    />
+                  </div>
+                </div>
               </div>
-            </section>
-          </div>
+            </div>
+          </section>
 
           {/* Departemen Section (full-width without vw breakout to avoid horizontal overflow) */}
           <section
@@ -235,15 +451,15 @@ export default function OrganisasiPage() {
             <div className="max-w-7xl mx-auto px-6">
               <div className="relative">
                 <div className="mb-8">
-                  <h3 className="sh2 text-primary-700">Meet Our Team</h3>
+                  <h3 className="sh2 text-primary-500">Meet Our Team</h3>
                   <h2 className="sh1 text-primary-700">Departemen KMBUI</h2>
                 </div>
 
                 <div className="relative">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {(() => {
-                      const [a, b] = getPairIndices(departments.length, selectedDept);
-                      const cards = [departments[a], departments[b]];
+                      const [a, b] = getPairIndices(DEPARTMENTS.length, selectedDept);
+                      const cards = [DEPARTMENTS[a], DEPARTMENTS[b]];
                       return cards.map((dept, index) => (
                         <article key={dept.id} className="dept-card rounded-2xl bg-white shadow-lg overflow-hidden">
                           <div className="relative h-32">
@@ -267,7 +483,7 @@ export default function OrganisasiPage() {
                   </div>
 
                   <button
-                    onClick={() => setSelectedDept((prev) => (prev === 0 ? departments.length - 1 : prev - 1))}
+                    onClick={() => setSelectedDept((prev) => (prev === 0 ? DEPARTMENTS.length - 1 : prev - 1))}
                     className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
                     aria-label="Previous department"
                   >
@@ -277,7 +493,7 @@ export default function OrganisasiPage() {
                   </button>
 
                   <button
-                    onClick={() => setSelectedDept((prev) => (prev === departments.length - 1 ? 0 : prev + 1))}
+                    onClick={() => setSelectedDept((prev) => (prev === DEPARTMENTS.length - 1 ? 0 : prev + 1))}
                     className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
                     aria-label="Next department"
                   >
@@ -301,8 +517,8 @@ export default function OrganisasiPage() {
                 <div className="relative">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {(() => {
-                      const [a, b] = getPairIndices(events.length, selectedEvent);
-                      const cards = [events[a], events[b]];
+                      const [a, b] = getPairIndices(EVENTS.length, selectedEvent);
+                      const cards = [EVENTS[a], EVENTS[b]];
                       return cards.map((event) => (
                         <article key={event.id} className="rounded-2xl bg-white shadow-lg overflow-hidden">
                           <div className="relative h-56 md:h-64">
@@ -323,7 +539,7 @@ export default function OrganisasiPage() {
                   </div>
 
                   <button
-                    onClick={() => setSelectedEvent((prev) => (prev === 0 ? events.length - 1 : prev - 1))}
+                    onClick={() => setSelectedEvent((prev) => (prev === 0 ? EVENTS.length - 1 : prev - 1))}
                     className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
                     aria-label="Previous program kerja"
                   >
@@ -333,7 +549,7 @@ export default function OrganisasiPage() {
                   </button>
 
                   <button
-                    onClick={() => setSelectedEvent((prev) => (prev === events.length - 1 ? 0 : prev + 1))}
+                    onClick={() => setSelectedEvent((prev) => (prev === EVENTS.length - 1 ? 0 : prev + 1))}
                     className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
                     aria-label="Next program kerja"
                   >
