@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import ReactFlow, {
   type Edge,
@@ -225,6 +225,33 @@ const ORG_TREE: OrgTreeNode = {
 export default function OrganisasiPage() {
   const [selectedDept, setSelectedDept] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState(0);
+  const [deptAnim, setDeptAnim] = useState("");
+  const [eventAnim, setEventAnim] = useState("");
+  const deptAnimTimer = useRef<number | null>(null);
+  const eventAnimTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (deptAnimTimer.current) window.clearTimeout(deptAnimTimer.current);
+      if (eventAnimTimer.current) window.clearTimeout(eventAnimTimer.current);
+    };
+  }, []);
+
+  const triggerDept = (dir: "prev" | "next") => {
+    if (DEPARTMENTS.length === 0) return;
+    setDeptAnim(dir === "next" ? "animate-carousel-next" : "animate-carousel-prev");
+    setSelectedDept((prev) => (dir === "next" ? (prev === DEPARTMENTS.length - 1 ? 0 : prev + 1) : (prev === 0 ? DEPARTMENTS.length - 1 : prev - 1)));
+    if (deptAnimTimer.current) window.clearTimeout(deptAnimTimer.current);
+    deptAnimTimer.current = window.setTimeout(() => setDeptAnim(""), 340);
+  };
+
+  const triggerEvent = (dir: "prev" | "next") => {
+    if (EVENTS.length === 0) return;
+    setEventAnim(dir === "next" ? "animate-carousel-next" : "animate-carousel-prev");
+    setSelectedEvent((prev) => (dir === "next" ? (prev === EVENTS.length - 1 ? 0 : prev + 1) : (prev === 0 ? EVENTS.length - 1 : prev - 1)));
+    if (eventAnimTimer.current) window.clearTimeout(eventAnimTimer.current);
+    eventAnimTimer.current = window.setTimeout(() => setEventAnim(""), 340);
+  };
 
   const getDeptCardTitle = (name: string) => {
     const match = name.match(/\(([^)]+)\)/);
@@ -456,7 +483,7 @@ export default function OrganisasiPage() {
                 </div>
 
                 <div className="relative">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${deptAnim}`}>
                     {(() => {
                       const [a, b] = getPairIndices(DEPARTMENTS.length, selectedDept);
                       const cards = [DEPARTMENTS[a], DEPARTMENTS[b]];
@@ -483,7 +510,7 @@ export default function OrganisasiPage() {
                   </div>
 
                   <button
-                    onClick={() => setSelectedDept((prev) => (prev === 0 ? DEPARTMENTS.length - 1 : prev - 1))}
+                    onClick={() => triggerDept("prev")}
                     className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
                     aria-label="Previous department"
                   >
@@ -493,7 +520,7 @@ export default function OrganisasiPage() {
                   </button>
 
                   <button
-                    onClick={() => setSelectedDept((prev) => (prev === DEPARTMENTS.length - 1 ? 0 : prev + 1))}
+                    onClick={() => triggerDept("next")}
                     className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
                     aria-label="Next department"
                   >
@@ -515,7 +542,7 @@ export default function OrganisasiPage() {
                 </div>
 
                 <div className="relative">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${eventAnim}`}>
                     {(() => {
                       const [a, b] = getPairIndices(EVENTS.length, selectedEvent);
                       const cards = [EVENTS[a], EVENTS[b]];
@@ -539,7 +566,7 @@ export default function OrganisasiPage() {
                   </div>
 
                   <button
-                    onClick={() => setSelectedEvent((prev) => (prev === 0 ? EVENTS.length - 1 : prev - 1))}
+                    onClick={() => triggerEvent("prev")}
                     className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
                     aria-label="Previous program kerja"
                   >
@@ -549,7 +576,7 @@ export default function OrganisasiPage() {
                   </button>
 
                   <button
-                    onClick={() => setSelectedEvent((prev) => (prev === EVENTS.length - 1 ? 0 : prev + 1))}
+                    onClick={() => triggerEvent("next")}
                     className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
                     aria-label="Next program kerja"
                   >

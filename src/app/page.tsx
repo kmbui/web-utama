@@ -1,7 +1,32 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+type RilisItem = { id: string; title: string; subtitle: string };
+type ProgramItem = { id: string; title: string; subtitle?: string };
+
+const RILIS_ITEMS: RilisItem[] = [
+  { id: "rilis-1", title: "Viriya", subtitle: "Paramita 59" },
+  { id: "rilis-2", title: "Viriya", subtitle: "Paramita 59" },
+  { id: "rilis-3", title: "Viriya", subtitle: "Paramita 59" },
+  { id: "rilis-4", title: "Viriya", subtitle: "Paramita 59" },
+  { id: "rilis-5", title: "Viriya", subtitle: "Paramita 59" },
+  { id: "rilis-6", title: "Viriya", subtitle: "Paramita 59" },
+];
+
+const PROGRAM_ITEMS: ProgramItem[] = [
+  { id: "proker-1", title: "Bakti Sosial KMBUI (Baksos)" },
+  { id: "proker-2", title: "PPMB (Penerimaan dan Pembekalan Mahasiswa Baru)" },
+  { id: "proker-3", title: "Program Kerja" },
+  { id: "proker-4", title: "Program Kerja" },
+];
+
+function getCarouselWindow<T>(items: T[], start: number, count: number): T[] {
+  if (items.length === 0) return [];
+  const normalizedStart = ((start % items.length) + items.length) % items.length;
+  return Array.from({ length: Math.min(count, items.length) }, (_, i) => items[(normalizedStart + i) % items.length]);
+}
 
 function CountUpAnimation({ end, duration, suffix = "" }: { end: number; duration: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -23,6 +48,40 @@ function CountUpAnimation({ end, duration, suffix = "" }: { end: number; duratio
 }
 
 export default function Home() {
+  const [rilisStart, setRilisStart] = useState(0);
+  const [rilisAnim, setRilisAnim] = useState("");
+  const rilisTimer = useRef<number | null>(null);
+
+  const [programStart, setProgramStart] = useState(0);
+  const [programAnim, setProgramAnim] = useState("");
+  const programTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (rilisTimer.current) window.clearTimeout(rilisTimer.current);
+      if (programTimer.current) window.clearTimeout(programTimer.current);
+    };
+  }, []);
+
+  const triggerRilis = (dir: "prev" | "next") => {
+    if (RILIS_ITEMS.length === 0) return;
+    setRilisAnim(dir === "next" ? "animate-carousel-next" : "animate-carousel-prev");
+    setRilisStart((prev) => (dir === "next" ? prev + 1 : prev - 1));
+    if (rilisTimer.current) window.clearTimeout(rilisTimer.current);
+    rilisTimer.current = window.setTimeout(() => setRilisAnim(""), 340);
+  };
+
+  const triggerProgram = (dir: "prev" | "next") => {
+    if (PROGRAM_ITEMS.length === 0) return;
+    setProgramAnim(dir === "next" ? "animate-carousel-next" : "animate-carousel-prev");
+    setProgramStart((prev) => (dir === "next" ? prev + 1 : prev - 1));
+    if (programTimer.current) window.clearTimeout(programTimer.current);
+    programTimer.current = window.setTimeout(() => setProgramAnim(""), 340);
+  };
+
+  const rilisWindow = getCarouselWindow(RILIS_ITEMS, rilisStart, 4);
+  const programWindow = getCarouselWindow(PROGRAM_ITEMS, programStart, 2);
+
   return (
     <main className="m-0 p-0">
       {/* Hero Section */}
@@ -117,40 +176,32 @@ export default function Home() {
 
           <div className="relative">
             {/* Carousel Container */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Card 1 */}
-              <div className="bg-gray-50 rounded-2xl p-4 border border-neutral-100">
-                <div className="bg-gray-200 rounded-xl aspect-square mb-4"></div>
-                <h3 className="sh4 text-neutral-900">Viriya</h3>
-                <p className="b4 text-neutral-600">Paramita 59</p>
-              </div>
-              
-              {/* Card 2 */}
-              <div className="bg-gray-50 rounded-2xl p-4 border border-neutral-100">
-                <div className="bg-gray-200 rounded-xl aspect-square mb-4"></div>
-                <h3 className="sh4 text-neutral-900">Viriya</h3>
-                <p className="b4 text-neutral-600">Paramita 59</p>
-              </div>
-              
-              {/* Card 3 */}
-              <div className="bg-gray-50 rounded-2xl p-4 border border-neutral-100">
-                <div className="bg-gray-200 rounded-xl aspect-square mb-4"></div>
-                <h3 className="sh4 text-neutral-900">Viriya</h3>
-                <p className="b4 text-neutral-600">Paramita 59</p>
-              </div>
-              
-              {/* Card 4 */}
-              <div className="bg-gray-50 rounded-2xl p-4 border border-neutral-100">
-                <div className="bg-gray-200 rounded-xl aspect-square mb-4"></div>
-                <h3 className="sh4 text-neutral-900">Viriya</h3>
-                <p className="b4 text-neutral-600">Paramita 59</p>
-              </div>
+            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 ${rilisAnim}`}>
+              {rilisWindow.map((item) => (
+                <div key={item.id} className="bg-gray-50 rounded-2xl p-4 border border-neutral-100">
+                  <div className="bg-gray-200 rounded-xl aspect-square mb-4"></div>
+                  <h3 className="sh4 text-neutral-900">{item.title}</h3>
+                  <p className="b4 text-neutral-600">{item.subtitle}</p>
+                </div>
+              ))}
             </div>
+
+            {/* Navigation Button - Previous */}
+            <button
+              className="absolute -left-4 top-1/2 -translate-y-1/2 bg-primary-700 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-primary-500 transition-colors shadow-lg"
+              aria-label="Previous"
+              onClick={() => triggerRilis("prev")}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
 
             {/* Navigation Button */}
             <button
               className="absolute -right-4 top-1/2 -translate-y-1/2 bg-primary-700 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-primary-500 transition-colors shadow-lg"
               aria-label="Next"
+              onClick={() => triggerRilis("next")}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -168,38 +219,38 @@ export default function Home() {
           </h2>
 
           <div className="relative">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Card 1 - Bakti Sosial KMBUI (Baksos) */}
-              <div className="relative rounded-3xl overflow-hidden h-80 group">
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-400/50 to-gray-700">
-                  {/* Placeholder for background image */}
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center text-white">
-                    <div className="w-20 h-20 bg-primary-700 rounded-full mx-auto mb-4"></div>
-                    <h3 className="sh3 font-semibold">Bakti Sosial KMBUI (Baksos)</h3>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${programAnim}`}>
+              {programWindow.map((item) => (
+                <div key={item.id} className="relative rounded-3xl overflow-hidden h-80 group">
+                  <div className="absolute inset-0 bg-gradient-to-b from-gray-400/50 to-gray-700">
+                    {/* Placeholder for background image */}
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center text-white">
+                      <div className="w-20 h-20 bg-primary-700 rounded-full mx-auto mb-4"></div>
+                      <h3 className="sh3 font-semibold">{item.title}</h3>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Card 2 - PPMB */}
-              <div className="relative rounded-3xl overflow-hidden h-80 group">
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-400/50 to-gray-700">
-                  {/* Placeholder for background image */}
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center text-white">
-                    <div className="w-20 h-20 bg-primary-700 rounded-full mx-auto mb-4"></div>
-                    <h3 className="sh3 font-semibold">PPMB (Penerimaan dan Pembekalan Mahasiswa Baru)</h3>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
+
+            {/* Navigation Button - Previous */}
+            <button
+              className="absolute -left-4 top-1/2 -translate-y-1/2 bg-primary-700 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-primary-500 transition-colors shadow-lg"
+              aria-label="Previous"
+              onClick={() => triggerProgram("prev")}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
 
             {/* Navigation Button */}
             <button
               className="absolute -right-4 top-1/2 -translate-y-1/2 bg-primary-700 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-primary-500 transition-colors shadow-lg"
               aria-label="Next"
+              onClick={() => triggerProgram("next")}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

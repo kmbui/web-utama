@@ -210,6 +210,39 @@ a:hover { text-decoration: underline; }
     will-change: transform;
   }
 
+  /* Carousel click transitions */
+  @keyframes carousel-next {
+    0% {
+      opacity: 0;
+      transform: translateX(18px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes carousel-prev {
+    0% {
+      opacity: 0;
+      transform: translateX(-18px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-carousel-next {
+    animation: carousel-next 320ms ease-out both;
+    will-change: opacity, transform;
+  }
+
+  .animate-carousel-prev {
+    animation: carousel-prev 320ms ease-out both;
+    will-change: opacity, transform;
+  }
+
   /* Entrance animations */
   @keyframes fade-up {
     0% {
@@ -229,6 +262,11 @@ a:hover { text-decoration: underline; }
 
   @media (prefers-reduced-motion: reduce) {
     .animate-fade-up {
+      animation: none;
+    }
+
+    .animate-carousel-next,
+    .animate-carousel-prev {
       animation: none;
     }
   }
