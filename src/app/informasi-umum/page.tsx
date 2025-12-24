@@ -23,41 +23,43 @@ export default function InformasiUmumPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               {/* Left - Text */}
               <div>
-                <h1 className="sh1 text-white mb-6">About Us</h1>
+                <h1 className="text-white mb-6">About Us</h1>
                 <p className="b1 text-white/95 leading-relaxed">
                   Keluarga Mahasiswa Buddhis Universitas Indonesia (KMBUI) merupakan sebuah Unit Kegiatan Mahasiswa (UKM) di tingkat universitas yang berkedudukan di Universitas Indonesia dan bergerak pada bidang kerohanian Buddha serta kegiatan sosial kemasyarakatan.
                 </p>
               </div>
 
               {/* Right - Auto-scrolling Image Columns */}
-              <div className="grid grid-cols-2 gap-4 h-[500px]">
-                {/* Left Column - Scrolls Up */}
-                <div className="overflow-hidden relative">
-                  <div className="flex flex-col gap-4 animate-scroll-up">
-                    <div className="bg-gray-300 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    <div className="bg-gray-400 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    <div className="bg-gray-500 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    <div className="bg-gray-600 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    {/* Duplicate for seamless loop */}
-                    <div className="bg-gray-300 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    <div className="bg-gray-400 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    <div className="bg-gray-500 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    <div className="bg-gray-600 rounded-xl h-40 w-full flex-shrink-0"></div>
+              <div className="relative h-[500px] overflow-visible">
+                <div className="absolute inset-x-0 -top-16 -bottom-16 md:-top-20 md:-bottom-20 lg:-top-24 lg:-bottom-24 grid grid-cols-2 gap-4">
+                  {/* Left Column - Scrolls Up */}
+                  <div className="overflow-hidden relative h-full">
+                    <div className="flex flex-col gap-4 animate-scroll-up">
+                      <div className="bg-gray-300 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      <div className="bg-gray-400 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      <div className="bg-gray-500 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      <div className="bg-gray-600 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      {/* Duplicate for seamless loop */}
+                      <div className="bg-gray-300 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      <div className="bg-gray-400 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      <div className="bg-gray-500 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      <div className="bg-gray-600 rounded-xl h-40 w-full flex-shrink-0"></div>
+                    </div>
                   </div>
-                </div>
-                
-                {/* Right Column - Scrolls Down */}
-                <div className="overflow-hidden relative">
-                  <div className="flex flex-col gap-4 animate-scroll-down">
-                    <div className="bg-gray-600 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    <div className="bg-gray-500 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    <div className="bg-gray-400 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    <div className="bg-gray-300 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    {/* Duplicate for seamless loop */}
-                    <div className="bg-gray-600 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    <div className="bg-gray-500 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    <div className="bg-gray-400 rounded-xl h-40 w-full flex-shrink-0"></div>
-                    <div className="bg-gray-300 rounded-xl h-40 w-full flex-shrink-0"></div>
+
+                  {/* Right Column - Scrolls Down */}
+                  <div className="overflow-hidden relative h-full">
+                    <div className="flex flex-col gap-4 animate-scroll-down">
+                      <div className="bg-gray-600 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      <div className="bg-gray-500 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      <div className="bg-gray-400 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      <div className="bg-gray-300 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      {/* Duplicate for seamless loop */}
+                      <div className="bg-gray-600 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      <div className="bg-gray-500 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      <div className="bg-gray-400 rounded-xl h-40 w-full flex-shrink-0"></div>
+                      <div className="bg-gray-300 rounded-xl h-40 w-full flex-shrink-0"></div>
+                    </div>
                   </div>
                 </div>
               </div>
