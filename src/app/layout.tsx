@@ -83,7 +83,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body
-  className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased bg-primary m-0 p-0`}
+  className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased bg-neutral-50 m-0 p-0 min-h-screen flex flex-col`}
       >
   {/* Organization JSON-LD for richer SEO */}
   <script
@@ -101,7 +101,9 @@ export default function RootLayout({
     }}
   />
   <Nav />
-  {children}
+  <div className="flex-1 bg-neutral-50">
+    {children}
+  </div>
   <Footer />
       </body>
     </html>
