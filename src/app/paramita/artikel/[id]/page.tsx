@@ -7,20 +7,20 @@ import { getParamitaArtikelBySlug } from "@/lib/paramitaContent";
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const artikel = await getParamitaArtikelBySlug(slug);
+  const { id } = await params;
+  const artikel = await getParamitaArtikelBySlug(id);
   return { title: artikel?.title ?? "Artikel" };
 }
 
 export default async function ParamitaArtikelDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ id: string }>;
 }) {
-  const { slug } = await params;
-  const artikel = await getParamitaArtikelBySlug(slug);
+  const { id } = await params;
+  const artikel = await getParamitaArtikelBySlug(id);
   if (!artikel) notFound();
 
   return (

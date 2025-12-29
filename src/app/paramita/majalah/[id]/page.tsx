@@ -8,23 +8,23 @@ import PdfFlipbookClient from "./PdfFlipbookClient";
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const majalah = await getParamitaMajalahBySlug(slug);
+  const { id } = await params;
+  const majalah = await getParamitaMajalahBySlug(id);
   return { title: majalah?.title ?? "Majalah" };
 }
 
 export default async function ParamitaMajalahDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ id: string }>;
 }) {
-  const { slug } = await params;
-  const majalah = await getParamitaMajalahBySlug(slug);
+  const { id } = await params;
+  const majalah = await getParamitaMajalahBySlug(id);
   if (!majalah) notFound();
 
-  const majalahId = majalah.id ?? (/^\d+$/.test(slug) ? Number(slug) : null);
+  const majalahId = majalah.id ?? (/^\d+$/.test(id) ? Number(id) : null);
 
   return (
     <main className="bg-neutral-50">
