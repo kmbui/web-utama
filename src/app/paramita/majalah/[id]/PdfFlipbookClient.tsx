@@ -85,6 +85,7 @@ export default function PdfFlipbookClient({ pdfUrl, title }: PdfFlipbookClientPr
   const [numPages, setNumPages] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [portrait, setPortrait] = useState(true);
+  const [progress, setProgress] = useState<number | null>(null);
 
   // Keep a reasonable size that matches existing page widths.
   const pageSize = useMemo<PageSize>(() => {
@@ -100,6 +101,7 @@ export default function PdfFlipbookClient({ pdfUrl, title }: PdfFlipbookClientPr
       setError(null);
       setPdf(null);
       setNumPages(0);
+      setProgress(null);
 
       try {
         const loadingTask = getDocument({
@@ -108,6 +110,15 @@ export default function PdfFlipbookClient({ pdfUrl, title }: PdfFlipbookClientPr
           disableAutoFetch: false,
           disableStream: false,
         });
+
+        loadingTask.onProgress = ({ loaded, total }: { loaded: number; total?: number }) => {
+          if (cancelled) return;
+          if (!total) {
+            setProgress(null);
+            return;
+          }
+          setProgress(clamp(loaded / total, 0, 1));
+        };
 
         const doc = await loadingTask.promise;
         if (cancelled) return;
@@ -124,6 +135,32 @@ export default function PdfFlipbookClient({ pdfUrl, title }: PdfFlipbookClientPr
       cancelled = true;
     };
   }, [pdfUrl]);
+
+  const SkeletonPage = ({ ariaLabel }: { ariaLabel: string }) => (
+    <div
+      className="bg-white border border-neutral-100 rounded-lg overflow-hidden"
+      style={{ width: pageSize.width, height: pageSize.height }}
+      aria-label={ariaLabel}
+      role="status"
+    >
+      <div className="w-full h-full p-4 animate-pulse">
+        <div className="h-6 w-2/3 bg-neutral-100 rounded" />
+        <div className="mt-4 space-y-3">
+          <div className="h-3 w-full bg-neutral-100 rounded" />
+          <div className="h-3 w-11/12 bg-neutral-100 rounded" />
+          <div className="h-3 w-10/12 bg-neutral-100 rounded" />
+          <div className="h-3 w-9/12 bg-neutral-100 rounded" />
+        </div>
+        <div className="mt-6 space-y-3">
+          <div className="h-3 w-full bg-neutral-100 rounded" />
+          <div className="h-3 w-11/12 bg-neutral-100 rounded" />
+          <div className="h-3 w-10/12 bg-neutral-100 rounded" />
+          <div className="h-3 w-9/12 bg-neutral-100 rounded" />
+        </div>
+        <div className="mt-6 h-40 w-full bg-neutral-100 rounded" />
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 768px)");
@@ -160,10 +197,36 @@ export default function PdfFlipbookClient({ pdfUrl, title }: PdfFlipbookClientPr
   }
 
   if (!pdf) {
+    const percent = progress == null ? null : Math.round(progress * 100);
+
     return (
-      <div className="bg-white border border-neutral-100 rounded-2xl shadow-lg p-6">
-        <p className="sh4 text-neutral-900">Memuat PDF…</p>
-        <p className="b4 text-neutral-600 mt-2">Mohon tunggu sebentar.</p>
+      <div className="mt-8">
+        <div className="bg-white border border-neutral-100 rounded-2xl shadow-lg p-4 overflow-x-auto md:overflow-hidden">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="sh4 text-neutral-900">Memuat PDF…</p>
+              <p className="b5 text-neutral-600 mt-1">{title}</p>
+            </div>
+            {percent == null ? null : <p className="b5 text-neutral-600">{percent}%</p>}
+          </div>
+
+          {percent == null ? null : (
+            <div className="mt-3 h-2 w-full rounded-full bg-neutral-100 overflow-hidden" aria-label="Progress memuat PDF">
+              <div className="h-full bg-primary-700" style={{ width: `${percent}%` }} />
+            </div>
+          )}
+
+          <div className="mt-4">
+            <div className="inline-block md:block md:w-fit md:mx-auto">
+              <div className="flex gap-3">
+                <SkeletonPage ariaLabel="Memuat halaman PDF" />
+                {portrait ? null : <SkeletonPage ariaLabel="Memuat halaman PDF" />}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p className="b5 text-neutral-600 mt-3">Mohon tunggu sebentar.</p>
       </div>
     );
   }
