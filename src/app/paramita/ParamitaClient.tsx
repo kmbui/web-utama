@@ -98,6 +98,9 @@ export default function ParamitaClient({
   const [artikelAnim, setArtikelAnim] = useState("");
   const [majalahAnim, setMajalahAnim] = useState("");
 
+  const [showArtikelNav, setShowArtikelNav] = useState(false);
+  const [showMajalahNav, setShowMajalahNav] = useState(false);
+
   const artikelTimer = useRef<number | null>(null);
   const majalahTimer = useRef<number | null>(null);
 
@@ -135,6 +138,38 @@ export default function ParamitaClient({
     description: m.description ?? m.subtitle ?? "",
     thumbnailUrl: m.thumbnailUrl,
   }));
+
+  const resolvedMajalahItems = majalahItems.length ? majalahItems : MAJALAH_ITEMS;
+  const artikelCount = ARTIKEL_ITEMS.length;
+  const majalahCount = resolvedMajalahItems.length;
+
+  useEffect(() => {
+    const canScroll = (el: HTMLDivElement | null) => {
+      if (!el) return false;
+      // Small tolerance to avoid off-by-1 layout rounding.
+      return el.scrollWidth - el.clientWidth > 8;
+    };
+
+    const update = () => {
+      setShowArtikelNav(canScroll(artikelRef.current));
+      setShowMajalahNav(canScroll(majalahRef.current));
+    };
+
+    update();
+
+    const artikelEl = artikelRef.current;
+    const majalahEl = majalahRef.current;
+
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(update) : null;
+    if (ro && artikelEl) ro.observe(artikelEl);
+    if (ro && majalahEl) ro.observe(majalahEl);
+
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("resize", update);
+      ro?.disconnect();
+    };
+  }, [artikelCount, majalahCount]);
 
   return (
     <main className="bg-neutral-50">
@@ -216,37 +251,41 @@ export default function ParamitaClient({
               </div>
             </div>
 
-            <button
-              onClick={() =>
-                triggerScroll({
-                  dir: "prev",
-                  ref: artikelRef,
-                  setAnim: setArtikelAnim,
-                  timerRef: artikelTimer,
-                  amount: 320,
-                })
-              }
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
-              aria-label="Previous artikel"
-            >
-              <ChevronIcon dir="left" />
-            </button>
+            {showArtikelNav ? (
+              <>
+                <button
+                  onClick={() =>
+                    triggerScroll({
+                      dir: "prev",
+                      ref: artikelRef,
+                      setAnim: setArtikelAnim,
+                      timerRef: artikelTimer,
+                      amount: 320,
+                    })
+                  }
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
+                  aria-label="Previous artikel"
+                >
+                  <ChevronIcon dir="left" />
+                </button>
 
-            <button
-              onClick={() =>
-                triggerScroll({
-                  dir: "next",
-                  ref: artikelRef,
-                  setAnim: setArtikelAnim,
-                  timerRef: artikelTimer,
-                  amount: 320,
-                })
-              }
-              className="absolute right-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center z-10"
-              aria-label="Next artikel"
-            >
-              <ChevronIcon dir="right" />
-            </button>
+                <button
+                  onClick={() =>
+                    triggerScroll({
+                      dir: "next",
+                      ref: artikelRef,
+                      setAnim: setArtikelAnim,
+                      timerRef: artikelTimer,
+                      amount: 320,
+                    })
+                  }
+                  className="absolute right-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center z-10"
+                  aria-label="Next artikel"
+                >
+                  <ChevronIcon dir="right" />
+                </button>
+              </>
+            ) : null}
           </div>
         </section>
 
@@ -267,7 +306,7 @@ export default function ParamitaClient({
           <div className="relative mt-6">
             <div ref={majalahRef} className="overflow-x-auto no-scrollbar scroll-smooth">
               <div className={`flex gap-6 pb-2 ${majalahAnim}`}>
-                {(majalahItems.length ? majalahItems : MAJALAH_ITEMS).map((item, idx) => (
+                {resolvedMajalahItems.map((item, idx) => (
                   <article
                     key={item.id ? item.id : `majalah-${idx}`}
                     className="bg-white border border-neutral-100 rounded-2xl shadow-lg min-w-[220px] max-w-[240px] overflow-hidden"
@@ -303,37 +342,41 @@ export default function ParamitaClient({
               </div>
             </div>
 
-            <button
-              onClick={() =>
-                triggerScroll({
-                  dir: "prev",
-                  ref: majalahRef,
-                  setAnim: setMajalahAnim,
-                  timerRef: majalahTimer,
-                  amount: 260,
-                })
-              }
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
-              aria-label="Previous majalah"
-            >
-              <ChevronIcon dir="left" />
-            </button>
+            {showMajalahNav ? (
+              <>
+                <button
+                  onClick={() =>
+                    triggerScroll({
+                      dir: "prev",
+                      ref: majalahRef,
+                      setAnim: setMajalahAnim,
+                      timerRef: majalahTimer,
+                      amount: 260,
+                    })
+                  }
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center"
+                  aria-label="Previous majalah"
+                >
+                  <ChevronIcon dir="left" />
+                </button>
 
-            <button
-              onClick={() =>
-                triggerScroll({
-                  dir: "next",
-                  ref: majalahRef,
-                  setAnim: setMajalahAnim,
-                  timerRef: majalahTimer,
-                  amount: 260,
-                })
-              }
-              className="absolute right-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center z-10"
-              aria-label="Next majalah"
-            >
-              <ChevronIcon dir="right" />
-            </button>
+                <button
+                  onClick={() =>
+                    triggerScroll({
+                      dir: "next",
+                      ref: majalahRef,
+                      setAnim: setMajalahAnim,
+                      timerRef: majalahTimer,
+                      amount: 260,
+                    })
+                  }
+                  className="absolute right-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-primary-700 text-white shadow-lg grid place-items-center z-10"
+                  aria-label="Next majalah"
+                >
+                  <ChevronIcon dir="right" />
+                </button>
+              </>
+            ) : null}
           </div>
         </section>
       </div>
