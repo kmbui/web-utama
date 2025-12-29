@@ -31,7 +31,7 @@ export async function backendFetch(inputPath: string, init?: RequestInit) {
 
   const url = inputPath.startsWith("http")
     ? inputPath
-    : `${env.baseUrl}${inputPath.startsWith("/") ? "" : "/"}${inputPath}`;
+    : new URL(inputPath, `${env.baseUrl}/`).toString();
 
   const headers = new Headers(init?.headers);
   headers.set("accept", "application/json");

@@ -62,11 +62,9 @@ const ARTIKEL_ITEMS: ArtikelItem[] = [
 ];
 
 const MAJALAH_ITEMS: MajalahItem[] = [
-  { id: "majalah-1", title: "Viriya", description: "Paramita 59" },
-  { id: "majalah-2", title: "Viriya", description: "Paramita 59" },
-  { id: "majalah-3", title: "Viriya", description: "Paramita 59" },
-  { id: "majalah-4", title: "Viriya", description: "Paramita 59" },
-  { id: "majalah-5", title: "Viriya", description: "Paramita 59" },
+  { id: "viriya-paramita-59", title: "Viriya", description: "Paramita 59" },
+  { id: "viriya-paramita-59-2", title: "Viriya", description: "Paramita 59" },
+  { id: "viriya-paramita-59-3", title: "Viriya", description: "Paramita 59" },
 ];
 
 function getShortText(text: string, maxLen = 90) {
@@ -274,7 +272,11 @@ export default function ParamitaClient({
                     key={item.id ? item.id : `majalah-${idx}`}
                     className="bg-white border border-neutral-100 rounded-2xl shadow-lg min-w-[220px] max-w-[240px] overflow-hidden"
                   >
-                    <div className="p-4">
+                    <Link
+                      href={`/paramita/majalah/${item.id}`}
+                      aria-label={`Buka majalah ${item.title}`}
+                      className="block p-4"
+                    >
                       {item.thumbnailUrl ? (
                         <div className="relative rounded-2xl bg-neutral-100 aspect-[3/4] overflow-hidden">
                           <Image
@@ -295,7 +297,7 @@ export default function ParamitaClient({
                           <p className="b4 text-neutral-600">{getShortText(item.description)}</p>
                         ) : null}
                       </div>
-                    </div>
+                    </Link>
                   </article>
                 ))}
               </div>

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import MarkdownContent from "@/components/MarkdownContent";
 import { getParamitaMajalahBySlug } from "@/lib/paramitaContent";
+import PdfFlipbookClient from "./PdfFlipbookClient";
 
 export async function generateMetadata({
   params,
@@ -23,6 +24,8 @@ export default async function ParamitaMajalahDetailPage({
   const majalah = await getParamitaMajalahBySlug(slug);
   if (!majalah) notFound();
 
+  const majalahId = majalah.id ?? (/^\d+$/.test(slug) ? Number(slug) : null);
+
   return (
     <main className="bg-neutral-50">
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-14">
@@ -41,9 +44,15 @@ export default async function ParamitaMajalahDetailPage({
           <p className="b4 text-neutral-600 mt-2">{majalah.subtitle}</p>
         ) : null}
 
-        <div className="mt-8 bg-white border border-neutral-100 rounded-2xl shadow-lg p-6">
-          <MarkdownContent markdown={majalah.markdown} />
-        </div>
+        {majalah.fileUrl && majalahId ? (
+          <PdfFlipbookClient pdfUrl={`/api/paramita/majalah/${majalahId}/pdf`} title={majalah.title} />
+        ) : null}
+
+        {majalah.fileUrl && majalahId ? null : (
+          <div className="mt-8 bg-white border border-neutral-100 rounded-2xl shadow-lg p-6">
+            <MarkdownContent markdown={majalah.markdown} />
+          </div>
+        )}
       </div>
     </main>
   );

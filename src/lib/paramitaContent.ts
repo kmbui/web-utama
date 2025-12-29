@@ -1,4 +1,4 @@
-import { backendFetchJson, getBackendEnv } from "./backend";
+import { backendFetch, backendFetchJson, getBackendEnv } from "./backend";
 
 export type ParamitaArtikel = {
   slug: string;
@@ -19,6 +19,7 @@ export type ParamitaMajalah = {
   description?: string;
   thumbnailUri?: string;
   thumbnailUrl?: string;
+  fileUrl?: string;
   resourceUri?: string;
   status?: string;
 };
@@ -36,6 +37,22 @@ type BackendMagazineItem = {
     deletedAt: string | null;
   };
   thumbnailUrl: string;
+};
+
+type BackendMagazineDetail = {
+  metadata: {
+    id: number;
+    title: string;
+    description: string;
+    thumbnailUri: string;
+    resourceUri: string;
+    status: string;
+    updatedAt: string | null;
+    createdAt: string | null;
+    deletedAt: string | null;
+  };
+  thumbnailUrl: string;
+  fileUrl: string;
 };
 
 const ARTIKEL: ParamitaArtikel[] = [
@@ -98,7 +115,7 @@ export async function getParamitaMajalahList(): Promise<ParamitaMajalah[]> {
   if (!env) return MAJALAH;
 
   try {
-    const magazines = await backendFetchJson<BackendMagazineItem[]>("/magazines", {
+    const magazines = await backendFetchJson<BackendMagazineItem[]>("/api/v1/magazines", {
       // Backend returns short-lived presigned URLs (e.g. X-Amz-Expires=30),
       // so we must not cache this response.
       cache: "no-store",
@@ -117,8 +134,44 @@ export async function getParamitaMajalahList(): Promise<ParamitaMajalah[]> {
       status: item.metadata.status,
     }));
   } catch (err) {
-    console.error("[Paramita] Failed to fetch /magazines; falling back to local data.", err);
+    console.error("[Paramita] Failed to fetch /api/v1/magazines; falling back to local data.", err);
     return MAJALAH;
+  }
+}
+
+export async function getParamitaMajalahById(id: number): Promise<ParamitaMajalah | null> {
+  const env = getBackendEnv();
+  if (!env) return null;
+
+  try {
+    const res = await backendFetch(`/api/v1/magazines/${id}`, {
+      // Response includes short-lived presigned URLs.
+      cache: "no-store",
+    });
+
+    if (res.status === 403 || res.status === 404) return null;
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Backend request failed (${res.status} ${res.statusText}) ${text}`.trim());
+    }
+
+    const item = (await res.json()) as BackendMagazineDetail;
+    return {
+      slug: String(item.metadata.id),
+      title: item.metadata.title,
+      subtitle: "",
+      markdown: item.metadata.description ?? "",
+      id: item.metadata.id,
+      description: item.metadata.description,
+      thumbnailUri: item.metadata.thumbnailUri,
+      thumbnailUrl: item.thumbnailUrl,
+      fileUrl: item.fileUrl,
+      resourceUri: item.metadata.resourceUri,
+      status: item.metadata.status,
+    };
+  } catch (err) {
+    console.error(`[Paramita] Failed to fetch /api/v1/magazines/${id}.`, err);
+    return null;
   }
 }
 
@@ -132,6 +185,12 @@ export async function getParamitaMajalahBySlug(slug: string): Promise<ParamitaMa
 
   const env = getBackendEnv();
   if (!env) return null;
+
+  // Our routes use numeric IDs from backend (e.g. /paramita/majalah/24).
+  if (/^\d+$/.test(slug)) {
+    const id = Number(slug);
+    return getParamitaMajalahById(id);
+  }
 
   const list = await getParamitaMajalahList();
   return list.find((m) => m.slug === slug) ?? null;
