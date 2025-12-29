@@ -84,6 +84,7 @@ export default function PdfFlipbookClient({ pdfUrl, title }: PdfFlipbookClientPr
   const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
+  const [portrait, setPortrait] = useState(true);
 
   // Keep a reasonable size that matches existing page widths.
   const pageSize = useMemo<PageSize>(() => {
@@ -124,6 +125,26 @@ export default function PdfFlipbookClient({ pdfUrl, title }: PdfFlipbookClientPr
     };
   }, [pdfUrl]);
 
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+
+    const update = (e?: MediaQueryListEvent) => {
+      setPortrait(e?.matches ?? mq.matches);
+    };
+
+    update();
+
+    // Prefer modern API; fall back at runtime if needed.
+    try {
+      mq.addEventListener("change", update);
+      return () => mq.removeEventListener("change", update);
+    } catch {
+      (mq as unknown as { addListener: (cb: (e: MediaQueryListEvent) => void) => void }).addListener(update);
+      return () =>
+        (mq as unknown as { removeListener: (cb: (e: MediaQueryListEvent) => void) => void }).removeListener(update);
+    }
+  }, []);
+
   const pages = useMemo(() => {
     const total = clamp(numPages, 0, 400);
     return Array.from({ length: total }, (_, i) => i + 1);
@@ -149,8 +170,8 @@ export default function PdfFlipbookClient({ pdfUrl, title }: PdfFlipbookClientPr
 
   return (
     <div className="mt-8">
-      <div className="bg-white border border-neutral-100 rounded-2xl shadow-lg p-4 overflow-x-auto">
-        <div className="inline-block">
+      <div className="bg-white border border-neutral-100 rounded-2xl shadow-lg p-4 overflow-x-auto md:overflow-hidden">
+        <div className="inline-block md:block md:w-fit md:mx-auto">
           <HTMLFlipBook
             style={{}}
             startPage={0}
@@ -163,7 +184,7 @@ export default function PdfFlipbookClient({ pdfUrl, title }: PdfFlipbookClientPr
             maxHeight={pageSize.height}
             drawShadow
             flippingTime={600}
-            usePortrait
+            usePortrait={portrait}
             startZIndex={0}
             autoSize
             showCover={false}

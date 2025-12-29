@@ -25,10 +25,11 @@ export default async function ParamitaMajalahDetailPage({
   if (!majalah) notFound();
 
   const majalahId = majalah.id ?? (/^\d+$/.test(id) ? Number(id) : null);
+  const hasPdf = Boolean(majalah.fileUrl && majalahId);
 
   return (
     <main className="bg-neutral-50">
-      <div className="max-w-3xl mx-auto px-6 py-10 md:py-14">
+      <div className={`${hasPdf ? "max-w-6xl" : "max-w-3xl"} mx-auto px-6 py-10 md:py-14`}>
         <Link
           href="/paramita/majalah"
           aria-label="Kembali ke Majalah"
@@ -44,11 +45,11 @@ export default async function ParamitaMajalahDetailPage({
           <p className="b4 text-neutral-600 mt-2">{majalah.subtitle}</p>
         ) : null}
 
-        {majalah.fileUrl && majalahId ? (
+        {hasPdf ? (
           <PdfFlipbookClient pdfUrl={`/api/paramita/majalah/${majalahId}/pdf`} title={majalah.title} />
         ) : null}
 
-        {majalah.fileUrl && majalahId ? null : (
+        {hasPdf ? null : (
           <div className="mt-8 bg-white border border-neutral-100 rounded-2xl shadow-lg p-6">
             <MarkdownContent markdown={majalah.markdown} />
           </div>
