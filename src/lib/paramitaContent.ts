@@ -1,3 +1,5 @@
+import { backendFetchJson, getBackendEnv } from "./backend";
+
 export type ParamitaArtikel = {
   slug: string;
   title: string;
@@ -13,6 +15,27 @@ export type ParamitaMajalah = {
   title: string;
   subtitle: string;
   markdown: string;
+  id?: number;
+  description?: string;
+  thumbnailUri?: string;
+  thumbnailUrl?: string;
+  resourceUri?: string;
+  status?: string;
+};
+
+type BackendMagazineItem = {
+  metadata: {
+    id: number;
+    title: string;
+    description: string;
+    thumbnailUri: string;
+    resourceUri: string;
+    status: string;
+    updatedAt: string | null;
+    createdAt: string | null;
+    deletedAt: string | null;
+  };
+  thumbnailUrl: string;
 };
 
 const ARTIKEL: ParamitaArtikel[] = [
@@ -71,7 +94,32 @@ export async function getParamitaArtikelList(): Promise<ParamitaArtikel[]> {
 }
 
 export async function getParamitaMajalahList(): Promise<ParamitaMajalah[]> {
-  return MAJALAH;
+  const env = getBackendEnv();
+  if (!env) return MAJALAH;
+
+  try {
+    const magazines = await backendFetchJson<BackendMagazineItem[]>("/magazines", {
+      // Backend returns short-lived presigned URLs (e.g. X-Amz-Expires=30),
+      // so we must not cache this response.
+      cache: "no-store",
+    });
+
+    return magazines.map((item) => ({
+      slug: String(item.metadata.id),
+      title: item.metadata.title,
+      subtitle: "",
+      markdown: item.metadata.description ?? "",
+      id: item.metadata.id,
+      description: item.metadata.description,
+      thumbnailUri: item.metadata.thumbnailUri,
+      thumbnailUrl: item.thumbnailUrl,
+      resourceUri: item.metadata.resourceUri,
+      status: item.metadata.status,
+    }));
+  } catch (err) {
+    console.error("[Paramita] Failed to fetch /magazines; falling back to local data.", err);
+    return MAJALAH;
+  }
 }
 
 export async function getParamitaArtikelBySlug(slug: string): Promise<ParamitaArtikel | null> {
@@ -79,5 +127,12 @@ export async function getParamitaArtikelBySlug(slug: string): Promise<ParamitaAr
 }
 
 export async function getParamitaMajalahBySlug(slug: string): Promise<ParamitaMajalah | null> {
-  return MAJALAH.find((m) => m.slug === slug) ?? null;
+  const local = MAJALAH.find((m) => m.slug === slug);
+  if (local) return local;
+
+  const env = getBackendEnv();
+  if (!env) return null;
+
+  const list = await getParamitaMajalahList();
+  return list.find((m) => m.slug === slug) ?? null;
 }

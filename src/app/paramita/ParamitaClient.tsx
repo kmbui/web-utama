@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, type MutableRefObject, type RefObject } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import type { ParamitaMajalah } from "@/lib/paramitaContent";
 
 type ArtikelItem = {
   id: string;
@@ -16,7 +18,8 @@ type ArtikelItem = {
 type MajalahItem = {
   id: string;
   title: string;
-  subtitle: string;
+  description: string;
+  thumbnailUrl?: string;
 };
 
 const ARTIKEL_ITEMS: ArtikelItem[] = [
@@ -59,12 +62,18 @@ const ARTIKEL_ITEMS: ArtikelItem[] = [
 ];
 
 const MAJALAH_ITEMS: MajalahItem[] = [
-  { id: "majalah-1", title: "Viriya", subtitle: "Paramita 59" },
-  { id: "majalah-2", title: "Viriya", subtitle: "Paramita 59" },
-  { id: "majalah-3", title: "Viriya", subtitle: "Paramita 59" },
-  { id: "majalah-4", title: "Viriya", subtitle: "Paramita 59" },
-  { id: "majalah-5", title: "Viriya", subtitle: "Paramita 59" },
+  { id: "majalah-1", title: "Viriya", description: "Paramita 59" },
+  { id: "majalah-2", title: "Viriya", description: "Paramita 59" },
+  { id: "majalah-3", title: "Viriya", description: "Paramita 59" },
+  { id: "majalah-4", title: "Viriya", description: "Paramita 59" },
+  { id: "majalah-5", title: "Viriya", description: "Paramita 59" },
 ];
+
+function getShortText(text: string, maxLen = 90) {
+  const trimmed = text.trim();
+  if (trimmed.length <= maxLen) return trimmed;
+  return `${trimmed.slice(0, maxLen).trim()}…`;
+}
 
 function ChevronIcon({ dir }: { dir: "left" | "right" }) {
   return dir === "left" ? (
@@ -78,7 +87,11 @@ function ChevronIcon({ dir }: { dir: "left" | "right" }) {
   );
 }
 
-export default function ParamitaClient() {
+export default function ParamitaClient({
+  majalah,
+}: {
+  majalah: ParamitaMajalah[];
+}) {
   const artikelRef = useRef<HTMLDivElement | null>(null);
   const majalahRef = useRef<HTMLDivElement | null>(null);
 
@@ -117,6 +130,13 @@ export default function ParamitaClient() {
 
     el.scrollBy({ left: dir === "next" ? amount : -amount, behavior: "smooth" });
   };
+
+  const majalahItems: MajalahItem[] = (majalah?.length ? majalah : []).map((m) => ({
+    id: m.id != null ? String(m.id) : (m.slug ?? ""),
+    title: m.title,
+    description: m.description ?? m.subtitle ?? "",
+    thumbnailUrl: m.thumbnailUrl,
+  }));
 
   return (
     <main className="bg-neutral-50">
@@ -249,16 +269,31 @@ export default function ParamitaClient() {
           <div className="relative mt-6">
             <div ref={majalahRef} className="overflow-x-auto no-scrollbar scroll-smooth">
               <div className={`flex gap-6 pb-2 ${majalahAnim}`}>
-                {MAJALAH_ITEMS.map((item) => (
+                {(majalahItems.length ? majalahItems : MAJALAH_ITEMS).map((item, idx) => (
                   <article
-                    key={item.id}
+                    key={item.id ? item.id : `majalah-${idx}`}
                     className="bg-white border border-neutral-100 rounded-2xl shadow-lg min-w-[220px] max-w-[240px] overflow-hidden"
                   >
                     <div className="p-4">
-                      <div className="rounded-2xl bg-neutral-100 aspect-[3/4]" />
+                      {item.thumbnailUrl ? (
+                        <div className="relative rounded-2xl bg-neutral-100 aspect-[3/4] overflow-hidden">
+                          <Image
+                            src={item.thumbnailUrl}
+                            alt={item.title}
+                            fill
+                            unoptimized
+                            sizes="(min-width: 1024px) 240px, (min-width: 640px) 220px, 70vw"
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="rounded-2xl bg-neutral-100 aspect-[3/4]" />
+                      )}
                       <div className="mt-4">
                         <h3 className="sh4 text-neutral-900">{item.title}</h3>
-                        <p className="b4 text-neutral-600">{item.subtitle}</p>
+                        {item.description ? (
+                          <p className="b4 text-neutral-600">{getShortText(item.description)}</p>
+                        ) : null}
                       </div>
                     </div>
                   </article>

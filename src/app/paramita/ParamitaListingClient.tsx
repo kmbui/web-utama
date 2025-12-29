@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import type { ParamitaArtikel, ParamitaMajalah } from "@/lib/paramitaContent";
 
@@ -85,9 +86,15 @@ export default function ParamitaListingClient({
     const q = debouncedQuery.trim().toLowerCase();
     if (!q) return majalah;
     return majalah.filter((item) =>
-      [item.title, item.subtitle].some((v) => v.toLowerCase().includes(q)),
+      [item.title, item.description ?? ""].some((v) => v.toLowerCase().includes(q)),
     );
   }, [majalah, debouncedQuery]);
+
+  const getShortText = (text: string, maxLen = 90) => {
+    const trimmed = text.trim();
+    if (trimmed.length <= maxLen) return trimmed;
+    return `${trimmed.slice(0, maxLen).trim()}…`;
+  };
 
   return (
     <main className="bg-neutral-50">
@@ -194,10 +201,25 @@ export default function ParamitaListingClient({
                     className="bg-white border border-neutral-100 rounded-2xl shadow-lg overflow-hidden"
                   >
                     <Link href={`/paramita/majalah/${item.slug}`} className="block p-4">
-                      <div className="rounded-2xl bg-neutral-100 aspect-[3/4]" />
+                      {item.thumbnailUrl ? (
+                        <div className="relative rounded-2xl bg-neutral-100 aspect-[3/4] overflow-hidden">
+                          <Image
+                            src={item.thumbnailUrl}
+                            alt={item.title}
+                            fill
+                            unoptimized
+                            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="rounded-2xl bg-neutral-100 aspect-[3/4]" />
+                      )}
                       <div className="mt-4">
                         <h3 className="sh4 text-neutral-900">{item.title}</h3>
-                        <p className="b4 text-neutral-600">{item.subtitle}</p>
+                        {item.description ? (
+                          <p className="b4 text-neutral-600">{getShortText(item.description)}</p>
+                        ) : null}
                       </div>
                     </Link>
                   </article>

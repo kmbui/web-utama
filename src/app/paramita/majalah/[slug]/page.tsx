@@ -37,7 +37,9 @@ export default async function ParamitaMajalahDetailPage({
         </Link>
 
         <h1 className="sh1 text-primary-700">{majalah.title}</h1>
-        <p className="b4 text-neutral-600 mt-2">{majalah.subtitle}</p>
+        {majalah.subtitle ? (
+          <p className="b4 text-neutral-600 mt-2">{majalah.subtitle}</p>
+        ) : null}
 
         <div className="mt-8 bg-white border border-neutral-100 rounded-2xl shadow-lg p-6">
           <MarkdownContent markdown={majalah.markdown} />
