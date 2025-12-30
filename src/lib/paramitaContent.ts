@@ -1,13 +1,20 @@
 import { backendFetch, backendFetchJson, getBackendEnv } from "./backend";
 
 export type ParamitaArtikel = {
-  slug: string;
-  title: string;
-  subtitle: string;
-  tag: string;
-  author: string;
-  date: string;
-  markdown: string;
+  metadata: {
+    id: number;
+    title: string;
+    subtitle: string;
+    theme: string;
+    writer: string;
+    thumbnailUri: string;
+    contentUri: string;
+    status: string;
+    updatedAt: string | null;
+    createdAt: string | null;
+    deletedAt: string | null;
+  };
+  thumbnailUrl: string;
 };
 
 export type ParamitaMajalah = {
@@ -22,6 +29,9 @@ export type ParamitaMajalah = {
   fileUrl?: string;
   resourceUri?: string;
   status?: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+  deletedAt?: string | null;
 };
 
 type BackendMagazineItem = {
@@ -57,33 +67,60 @@ type BackendMagazineDetail = {
 
 const ARTIKEL: ParamitaArtikel[] = [
   {
-    slug: "judul-artikel-1",
-    title: "Judul Artikel",
-    subtitle: "Subjudul Artikel",
-    tag: "Tema",
-    author: "Nama Penulis",
-    date: "07/09/2025",
-    markdown: `# Judul Artikel\n\n_Subjudul Artikel_\n\nArtikel ini adalah **dummy** untuk menguji rendering markdown dari backend.\n\n## Poin Utama\n\n- Ini bullet pertama\n- Ini bullet kedua\n- Ini bullet ketiga\n\n> Kutipan singkat yang relevan dengan topik artikel.\n\n### Penutup\n\nTerima kasih sudah membaca. Untuk info lebih lanjut, lihat [Paramita](https://example.com).\n`,
+    metadata: {
+      id: 1,
+      title: "Judul Artikel",
+      subtitle: "Subjudul Artikel",
+      theme: "Tema",
+      writer: "Nama Penulis",
+      thumbnailUri: "",
+      contentUri: "local://artikel/1",
+      status: "published",
+      updatedAt: "2025-09-07T00:00:00.000Z",
+      createdAt: "2025-09-07T00:00:00.000Z",
+      deletedAt: null,
+    },
+    thumbnailUrl: "",
   },
   {
-    slug: "judul-artikel-2",
-    title: "Judul Artikel",
-    subtitle: "Subjudul Artikel",
-    tag: "Tema",
-    author: "Nama Penulis",
-    date: "07/09/2025",
-    markdown: `# Judul Artikel\n\nBerikut contoh markdown dengan **teks tebal**, _miring_, dan daftar bernomor:\n\n1. Langkah pertama\n2. Langkah kedua\n3. Langkah ketiga\n\n\`inline code\` juga harus rapi.\n`,
+    metadata: {
+      id: 2,
+      title: "Judul Artikel",
+      subtitle: "Subjudul Artikel",
+      theme: "Tema",
+      writer: "Nama Penulis",
+      thumbnailUri: "",
+      contentUri: "local://artikel/2",
+      status: "published",
+      updatedAt: "2025-09-07T00:00:00.000Z",
+      createdAt: "2025-09-07T00:00:00.000Z",
+      deletedAt: null,
+    },
+    thumbnailUrl: "",
   },
   {
-    slug: "judul-artikel-3",
-    title: "Judul Artikel",
-    subtitle: "Subjudul Artikel",
-    tag: "Tema",
-    author: "Nama Penulis",
-    date: "07/09/2025",
-    markdown: `# Judul Artikel\n\nIni paragraf pembuka.\n\n## Subbagian\n\n- Item A\n- Item B\n\n\n---\n\nCatatan: konten ini dummy.\n`,
+    metadata: {
+      id: 3,
+      title: "Judul Artikel",
+      subtitle: "Subjudul Artikel",
+      theme: "Tema",
+      writer: "Nama Penulis",
+      thumbnailUri: "",
+      contentUri: "local://artikel/3",
+      status: "published",
+      updatedAt: "2025-09-07T00:00:00.000Z",
+      createdAt: "2025-09-07T00:00:00.000Z",
+      deletedAt: null,
+    },
+    thumbnailUrl: "",
   },
 ];
+
+const ARTIKEL_MARKDOWN_BY_ID: Record<number, string> = {
+  1: `# Judul Artikel\n\n_Subjudul Artikel_\n\nArtikel ini adalah **dummy** untuk menguji rendering markdown dari backend.\n\n## Poin Utama\n\n- Ini bullet pertama\n- Ini bullet kedua\n- Ini bullet ketiga\n\n> Kutipan singkat yang relevan dengan topik artikel.\n\n### Penutup\n\nTerima kasih sudah membaca. Untuk info lebih lanjut, lihat [Paramita](https://example.com).\n`,
+  2: `# Judul Artikel\n\nBerikut contoh markdown dengan **teks tebal**, _miring_, dan daftar bernomor:\n\n1. Langkah pertama\n2. Langkah kedua\n3. Langkah ketiga\n\n\`inline code\` juga harus rapi.\n`,
+  3: `# Judul Artikel\n\nIni paragraf pembuka.\n\n## Subbagian\n\n- Item A\n- Item B\n\n\n---\n\nCatatan: konten ini dummy.\n`,
+};
 
 const MAJALAH: ParamitaMajalah[] = [
   {
@@ -107,7 +144,28 @@ const MAJALAH: ParamitaMajalah[] = [
 ];
 
 export async function getParamitaArtikelList(): Promise<ParamitaArtikel[]> {
-  return ARTIKEL;
+  const env = getBackendEnv();
+  if (!env) return ARTIKEL;
+
+  // Some deployments serve the API under /api/v1/* and route other paths (like /articles)
+  // to object storage. Try both.
+  const candidates = ["/articles", "/api/v1/articles"];
+
+  for (const path of candidates) {
+    try {
+      // Backend returns short-lived presigned URLs (if any), so we must not cache.
+      return await backendFetchJson<ParamitaArtikel[]>(path, {
+        cache: "no-store",
+      });
+    } catch {
+      // Try next candidate.
+    }
+  }
+
+  console.error("[Paramita] Failed to fetch articles from backend (tried /articles and /api/v1/articles)."
+  );
+  // If env is configured but backend fails, prefer an empty list over dummy data.
+  return [];
 }
 
 export async function getParamitaMajalahList(): Promise<ParamitaMajalah[]> {
@@ -132,6 +190,9 @@ export async function getParamitaMajalahList(): Promise<ParamitaMajalah[]> {
       thumbnailUrl: item.thumbnailUrl,
       resourceUri: item.metadata.resourceUri,
       status: item.metadata.status,
+      createdAt: item.metadata.createdAt,
+      updatedAt: item.metadata.updatedAt,
+      deletedAt: item.metadata.deletedAt,
     }));
   } catch (err) {
     console.error("[Paramita] Failed to fetch /api/v1/magazines; falling back to local data.", err);
@@ -168,6 +229,9 @@ export async function getParamitaMajalahById(id: number): Promise<ParamitaMajala
       fileUrl: item.fileUrl,
       resourceUri: item.metadata.resourceUri,
       status: item.metadata.status,
+      createdAt: item.metadata.createdAt,
+      updatedAt: item.metadata.updatedAt,
+      deletedAt: item.metadata.deletedAt,
     };
   } catch (err) {
     console.error(`[Paramita] Failed to fetch /api/v1/magazines/${id}.`, err);
@@ -175,8 +239,61 @@ export async function getParamitaMajalahById(id: number): Promise<ParamitaMajala
   }
 }
 
+export async function getParamitaArtikelById(id: number): Promise<ParamitaArtikel | null> {
+  const list = await getParamitaArtikelList();
+  return list.find((a) => a.metadata.id === id) ?? null;
+}
+
+export async function getParamitaArtikelMarkdownById(id: number): Promise<string | null> {
+  const env = getBackendEnv();
+  if (!env) return ARTIKEL_MARKDOWN_BY_ID[id] ?? null;
+
+  const artikel = await getParamitaArtikelById(id);
+  if (!artikel?.metadata.contentUri) return null;
+
+  const contentUri = artikel.metadata.contentUri;
+
+  try {
+    // contentUri is expected to point to a markdown resource.
+    // It might be an absolute URL (e.g. presigned) or a backend path that still
+    // needs API-key auth. Support both.
+    const res = contentUri.startsWith("http")
+      ? await fetch(contentUri, {
+          cache: "no-store",
+          headers: { accept: "text/markdown,text/plain,application/json;q=0.9,*/*;q=0.8" },
+        })
+      : await backendFetch(contentUri.startsWith("/") ? contentUri : `/${contentUri}`, {
+          cache: "no-store",
+          headers: { accept: "text/markdown,text/plain,application/json;q=0.9,*/*;q=0.8" },
+        });
+    if (!res.ok) return null;
+
+    const contentType = res.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      const json = (await res.json().catch(() => null)) as unknown;
+      if (json && typeof json === "object") {
+        const obj = json as Record<string, unknown>;
+        const markdown = obj.markdown;
+        const content = obj.content;
+        if (typeof markdown === "string") return markdown;
+        if (typeof content === "string") return content;
+      }
+      return JSON.stringify(json);
+    }
+
+    return await res.text();
+  } catch (err) {
+    console.error(`[Paramita] Failed to fetch article content for id=${id}.`, err);
+    return null;
+  }
+}
+
 export async function getParamitaArtikelBySlug(slug: string): Promise<ParamitaArtikel | null> {
-  return ARTIKEL.find((a) => a.slug === slug) ?? null;
+  // Routes use numeric IDs (e.g. /paramita/artikel/24).
+  if (/^\d+$/.test(slug)) {
+    return getParamitaArtikelById(Number(slug));
+  }
+  return null;
 }
 
 export async function getParamitaMajalahBySlug(slug: string): Promise<ParamitaMajalah | null> {
